@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { ArrowRight, Check, Layers, LogOut, PenLine, SkipForward, X } from 'lucide-react';
 import type { RevealedCard } from '@engine/types.ts';
+import { AudioController } from '../audio/AudioController.ts';
 import { AudioPanel, ListeningIndicator } from '../components/AudioPanel.tsx';
 import { ConnectionBadge } from '../components/ConnectionBadge.tsx';
 import { Logo } from '../components/Logo.tsx';
@@ -13,6 +14,7 @@ import { TurnFeed } from '../components/TurnFeed.tsx';
 import { colorVar } from '../lib/colors.ts';
 import { useGame } from '../lib/GameProvider.tsx';
 import { formatCode } from '../lib/format.ts';
+import { resolveReveal } from '../lib/revealAudio.ts';
 
 export function Game() {
   const { state, me, session, presence, isMyTurn, isHost, act, busy, audio, leave, backend } = useGame();
@@ -237,6 +239,22 @@ function GuessDialog({ open, onClose }: { open: boolean; onClose(): void }) {
   );
 }
 
+/** Spielt den richtig platzierten Song bei allen Spielern einmal ab (Start/Pause/Lautstärke für jeden). */
+function RevealPlayer({ card }: { card: RevealedCard }) {
+  const audio = useMemo(() => new AudioController(), []);
+  useEffect(() => {
+    let alive = true;
+    void resolveReveal(card).then((pb) => {
+      if (alive) void audio.load(pb, true);
+    });
+    return () => {
+      alive = false;
+      audio.stopAndClear();
+    };
+  }, [audio, card]);
+  return <AudioPanel audio={audio} canReplay={false} replaysLeft={null} onReplay={() => {}} />;
+}
+
 function ResultPanel() {
   const { state, me, act, busy, isHost } = useGame();
   const [waited, setWaited] = useState(false);
@@ -274,6 +292,7 @@ function ResultPanel() {
         )}
         <li>Gesamt: {r.totalPoints} Pkt.</li>
       </ul>
+      {r.correct && <RevealPlayer key={r.cardId} card={card} />}
       {canContinue ? (
         <Button variant="primary" icon={<ArrowRight size={16} />} loading={busy} onClick={() => void act({ type: 'nextTurn' })}>
           Weiter

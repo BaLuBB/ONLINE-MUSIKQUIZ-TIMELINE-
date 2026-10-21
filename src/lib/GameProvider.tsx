@@ -234,7 +234,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const phase = state?.phase;
   useEffect(() => {
     if (!backend || !roomId) return;
-    const shouldPlay = isMyTurn && Boolean(turnCard);
+    const shouldPlay = isMyTurn && Boolean(turnCard) && phase === 'playing';
     if (!shouldPlay) {
       if (audioCard.current) {
         audio.stopAndClear();
