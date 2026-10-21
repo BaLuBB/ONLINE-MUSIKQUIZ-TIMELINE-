@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { ArrowRight, Check, Layers, LogOut, PenLine, X } from 'lucide-react';
+import { ArrowRight, Check, Layers, LogOut, PenLine, SkipForward, X } from 'lucide-react';
 import type { RevealedCard } from '@engine/types.ts';
 import { AudioPanel, ListeningIndicator } from '../components/AudioPanel.tsx';
 import { ConnectionBadge } from '../components/ConnectionBadge.tsx';
@@ -13,7 +13,7 @@ import { useGame } from '../lib/GameProvider.tsx';
 import { formatCode } from '../lib/format.ts';
 
 export function Game() {
-  const { state, me, session, presence, isMyTurn, act, busy, audio, leave } = useGame();
+  const { state, me, session, presence, isMyTurn, isHost, act, busy, audio, leave } = useGame();
   const [selected, setSelected] = useState<number | null>(null);
   const [guessOpen, setGuessOpen] = useState(false);
   const [viewId, setViewId] = useState<string | null>(null);
@@ -141,6 +141,11 @@ export function Game() {
                 <ListeningIndicator name={activeName} />
                 {drawn && state.turn?.guessMade && <p className="muted small">{activeName} hat einen Titel getippt.</p>}
                 {!drawn && <p className="muted small">{activeName} zieht gleich eine Karte.</p>}
+                {isHost && (
+                  <Button size="sm" variant="ghost" icon={<SkipForward size={14} />} disabled={busy} onClick={() => void act({ type: 'skipTurn' })}>
+                    Zug überspringen
+                  </Button>
+                )}
               </>
             )}
           </div>

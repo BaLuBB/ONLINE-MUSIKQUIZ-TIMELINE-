@@ -52,6 +52,8 @@ export class LocalStorageStore implements RoomStore {
   }
   async insert(rec: RoomRecord, _events: GameEvent[]) {
     return withLock(() => {
+      // Verwaiste Testräume (älter als 6 h) wegräumen
+      for (const r of allRooms()) if (rec.createdAt - r.state.updatedAt > 6 * 3600_000) localStorage.removeItem(PREFIX + r.id);
       if (allRooms().some((r) => r.code === rec.code)) return 'code_taken' as const;
       write(rec);
       notifyRoom(rec.id);

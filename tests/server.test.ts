@@ -111,7 +111,7 @@ describe('Lobby', () => {
     const h = makeHarness();
     const { guest, roomId, guestPid, host } = await setupRoom(h, {}, false);
     await host.heartbeat(roomId);
-    h.advance(60_000);
+    h.advance(200_000);
     const st = okState(await guest.heartbeat(roomId));
     expect(st.hostId).toBe(guestPid);
   });
@@ -480,7 +480,7 @@ describe('Spielende, Neustart, Verbindung', () => {
     const waitingPid = activePid === room.hostPid ? room.guestPid : room.hostPid;
     // Aktiver Spieler sendet keine Heartbeats mehr
     await waiting.heartbeat(room.roomId);
-    h.advance(60_000);
+    h.advance(200_000);
     await waiting.heartbeat(room.roomId);
     const st = okState(await waiting.sync(room.roomId));
     expect(st.turn!.playerId).toBe(waitingPid);

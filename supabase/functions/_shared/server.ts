@@ -121,8 +121,11 @@ export class RateLimiter {
 // ───────────────────────── Server ─────────────────────────
 
 export const SERVER_LIMITS = {
-  /** Heartbeat älter als dies → Spieler gilt als getrennt. */
-  staleMs: 35_000,
+  /**
+   * Heartbeat älter als dies → Spieler gilt als getrennt (Host-Übergabe, Zug überspringen).
+   * Bewusst großzügig: Mobilbrowser pausieren im Hintergrund (z. B. beim Teilen des Codes per Messenger).
+   */
+  staleMs: 120_000,
   roomTtlMs: 6 * 3600_000,
   roomsPerHour: 8,
   casRetries: 5,

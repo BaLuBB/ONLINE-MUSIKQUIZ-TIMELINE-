@@ -52,9 +52,12 @@ export function useGame(): GameContextValue {
 const sessionKey = (mode: string) => `timeline.session.${mode}`;
 const FORCE_LOCAL_KEY = 'timeline.forceLocal';
 
+// Lokaler Testmodus: jeder Tab ist ein eigener Spieler → Sitzung pro Tab (sessionStorage).
+const sessionStore = (mode: string): Storage => (mode === 'local' ? sessionStorage : localStorage);
+
 function loadSession(mode: string): RoomSession | null {
   try {
-    const raw = localStorage.getItem(sessionKey(mode));
+    const raw = sessionStore(mode).getItem(sessionKey(mode));
     return raw ? (JSON.parse(raw) as RoomSession) : null;
   } catch {
     return null;
@@ -62,8 +65,8 @@ function loadSession(mode: string): RoomSession | null {
 }
 function saveSession(mode: string, s: RoomSession | null): void {
   try {
-    if (s) localStorage.setItem(sessionKey(mode), JSON.stringify(s));
-    else localStorage.removeItem(sessionKey(mode));
+    if (s) sessionStore(mode).setItem(sessionKey(mode), JSON.stringify(s));
+    else sessionStore(mode).removeItem(sessionKey(mode));
   } catch {
     /* ignorieren */
   }
@@ -191,9 +194,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
     };
     void refresh();
-    const hb = setInterval(() => {
-      if (!document.hidden) void refresh();
-    }, 10_000);
+    const hb = setInterval(() => void refresh(), 10_000);
     const poll = setInterval(async () => {
       if (document.hidden) return;
       const st = await backend.fetchState(roomId);
