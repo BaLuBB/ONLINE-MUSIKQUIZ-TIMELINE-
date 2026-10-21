@@ -143,6 +143,7 @@ Clients erhalten Audio nur als abspielbare Quelle für den **aktiven Spieler**; 
 * `AUDIO_PROVIDER=demo`: synthetische Testtöne (klar als „Demo-Ton“ markiert).
 * **Spotify** ist bewusst nicht eingebunden: Es gibt keinen frei nutzbaren Volltrack-Player für beliebige Webseiten (Embeds sind je Track/Region/Gerät eingeschränkt, die Web-API liefert keine Streams). Keine Scraper, keine Downloads, keine ungeprüften MP3-URLs.
 * **Weitere Anbieter:** serverseitig `AudioResolver` (`_shared/audio.ts`) implementieren und in `createResolver` registrieren; clientseitig bei Bedarf einen `PlaybackAdapter` (`src/audio/`) ergänzen. Fehler (Laden, Autoplay blockiert, Abbruch) landen immer in einem klaren Zustand mit „Erneut versuchen“.
+* **Party-Modus (Lautsprecher):** Der Host kann in der Lobby oder während des Spiels (Lautsprecher-Symbol oben) ein Gerät wählen, das die Musik abspielt – z. B. das Gerät an der Box. Nur dieses Gerät erhält die Audioquelle und spielt sie (inkl. Start/Pause/Lautstärke); alle anderen bleiben still. Der Spieler am Zug kann den Ausschnitt weiterhin wiederholen. Nach einer richtig platzierten Karte läuft der aufgedeckte Song ebenfalls nur über den Lautsprecher. Verlässt der Lautsprecher-Spieler das Spiel, spielt wieder jedes Gerät. Ohne Auswahl („Jedes Gerät“) bleibt alles wie bisher.
 * Autoplay: Direkt nach „Karte ziehen“ startet der Ton; blockiert der Browser das, erscheint „Jetzt abspielen“.
 
 ## Musikbibliothek

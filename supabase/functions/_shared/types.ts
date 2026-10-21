@@ -42,6 +42,8 @@ export interface Settings {
   maxReplays: number;
   /** Zählt die Startkarte zum Siegziel (offizielle Hitster-Zählung)? */
   startCardCounts: boolean;
+  /** Party-Modus: Nur dieses Gerät (Spieler-ID) spielt die Musik, z. B. an eine Box angeschlossen. null = jedes Gerät. */
+  speakerId: string | null;
 }
 
 export interface RevealedCard {

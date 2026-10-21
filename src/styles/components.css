@@ -339,3 +339,12 @@ code { font-family: var(--font-mono); font-size: 0.9em; background: var(--surfac
 
 .diag summary { cursor: pointer; color: var(--accent); font-size: var(--text-sm); font-weight: 560; }
 .diag pre { margin: var(--space-2) 0 0; padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-2); font-family: var(--font-mono); font-size: var(--text-xs); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 160px; overflow: auto; }
+
+/* ───────── Party-Modus: Lautsprecher-Auswahl ───────── */
+.speaker-picker { display: flex; flex-direction: column; gap: var(--space-2); }
+.speaker-opt { display: flex; align-items: center; gap: var(--space-3); text-align: left; padding: var(--space-3) var(--space-4); border: 1.5px solid var(--line-strong); border-radius: var(--radius-lg); background: var(--surface); color: var(--ink); cursor: pointer; }
+.speaker-opt span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.speaker-opt small { color: var(--ink-3); font-size: var(--text-xs); }
+.speaker-opt.on { border-color: var(--accent); background: var(--accent-soft); }
+.speaker-opt:disabled { cursor: default; opacity: 0.7; }
+.speaker-note { display: flex; align-items: center; gap: var(--space-2); justify-content: center; color: var(--ink-2); font-size: var(--text-sm); }

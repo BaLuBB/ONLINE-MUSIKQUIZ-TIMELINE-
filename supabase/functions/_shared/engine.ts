@@ -102,6 +102,7 @@ export function defaultSettings(): Settings {
     difficulty: 'normal',
     ...DIFFICULTY_PRESETS.normal,
     startCardCounts: false,
+    speakerId: null,
   };
 }
 
@@ -127,6 +128,7 @@ export function applySettingsPatch(
   base: Settings,
   patch: Partial<Settings>,
   playerCount: number,
+  playerIds: readonly string[] = [],
 ): { ok: true; settings: Settings } | { ok: false; error: GameError } {
   const s: Settings = { ...base };
   const bad = (msg: string) => fail('invalid_settings', msg);
@@ -167,6 +169,11 @@ export function applySettingsPatch(
   if (s.yearMin !== null && s.yearMax !== null && s.yearMin > s.yearMax) return bad('Zeitraum: „von“ liegt nach „bis“.');
   for (const key of ['titleBonus', 'allowReplay', 'startCardCounts'] as const) {
     if (patch[key] !== undefined) s[key] = Boolean(patch[key]);
+  }
+  if (patch.speakerId !== undefined) {
+    if (patch.speakerId === null) s.speakerId = null;
+    else if (typeof patch.speakerId === 'string' && playerIds.includes(patch.speakerId)) s.speakerId = patch.speakerId;
+    else return bad('Dieser Spieler ist nicht in der Runde.');
   }
   if (patch.maxReplays !== undefined) {
     const v = intIn(patch.maxReplays, 0, 20);
@@ -522,6 +529,7 @@ function doLeave(w: Work, playerId: string, eventType: 'player_left' | 'player_k
   if (idx < 0) return err('not_member', 'Du bist nicht Teil dieses Raums.');
   const leaving = state.players[idx];
   state.players.splice(idx, 1);
+  if (state.settings.speakerId === playerId) state.settings.speakerId = null;
   w.events.push({ type: eventType, payload: { playerId, name: leaving.name } });
 
   if (state.hostId === playerId && state.players.length > 0) {
@@ -568,11 +576,13 @@ function doKick(w: Work, targetId: string): Err {
 function doUpdateSettings(w: Work, patch: Partial<Settings>): Err {
   const e = requireHost(w);
   if (e) return e;
-  if (w.state.phase !== 'waiting') return err('invalid_phase', 'Einstellungen sind nur in der Lobby änderbar.');
-  const res = applySettingsPatch(w.state.settings, patch ?? {}, w.state.players.length);
+  // Den Lautsprecher darf der Host auch während des Spiels wechseln, alles andere nur in der Lobby.
+  const speakerOnly = Object.keys(patch ?? {}).every((k) => k === 'speakerId');
+  if (w.state.phase !== 'waiting' && !speakerOnly) return err('invalid_phase', 'Einstellungen sind nur in der Lobby änderbar.');
+  const res = applySettingsPatch(w.state.settings, patch ?? {}, w.state.players.length, w.state.players.map((p) => p.id));
   if (!res.ok) return res.error;
   w.state.settings = res.settings;
-  refreshPool(w.state, w.ctx.songs);
+  if (w.state.phase === 'waiting') refreshPool(w.state, w.ctx.songs);
   w.events.push({ type: 'settings_changed', payload: { settings: res.settings } });
   return null;
 }
@@ -739,7 +749,8 @@ function doReroll(w: Work): Err {
 }
 
 function doAudio(w: Work): Err {
-  const e = requireActiveTurn(w);
+  // Im Party-Modus darf der Lautsprecher-Spieler die Quelle abrufen (nicht nur der Spieler am Zug).
+  const e = w.state.settings.speakerId && w.state.settings.speakerId === w.actor ? requireMember(w) : requireActiveTurn(w);
   if (e) return e;
   if (w.state.phase !== 'playing' || !w.secret.current) return err('no_card', 'Es gibt gerade keine Karte zum Abspielen.');
   w.reply.songId = w.secret.current.songId;
