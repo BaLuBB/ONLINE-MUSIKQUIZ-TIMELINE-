@@ -297,7 +297,7 @@ const ROWS: Row[] = [
   // ───── Ergänzungen: Dance / House / Techno / Party / Viral / One-Hit-Wonder ─────
   ['David Guetta feat. Sia', 'Titanium', 2011, 'edm dance charts'],
   ['Swedish House Mafia', "Don't You Worry Child", 2012, 'edm house dance charts'],
-  ['Zedd feat. Foxes', 'Clarity', 2012, 'edm dance', { review: 'Single 2012, Album 2012' }],
+  ['Zedd feat. Foxes', 'Clarity', 2012, 'edm dance'],
   ['Calvin Harris feat. Rihanna', 'This Is What You Came For', 2016, 'edm dance charts'],
   ['Darude', 'Sandstorm', 1999, 'techno edm dance one-hit-wonder viral', { review: 'Finnland 1999, international 2000 – Jahr prüfen' }],
   ['Moby', 'Go', 1991, 'techno dance'],

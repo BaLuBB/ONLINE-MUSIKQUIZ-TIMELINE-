@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "gen:seed": "node scripts/gen-seed.mjs",
-    "check:songs": "node scripts/check-songs.mjs"
+    "gen:seed": "tsx scripts/gen-seed.ts",
+    "check:songs": "tsx scripts/check-songs.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
@@ -22,10 +22,12 @@
   "devDependencies": {
     "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "jsdom": "^29.1.1",
+    "pg": "^8.23.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",

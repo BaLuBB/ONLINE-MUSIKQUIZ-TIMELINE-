@@ -394,24 +394,28 @@ describe('Sieg', () => {
     expect(st.players.filter((p) => p.placedCorrect >= 3)).toHaveLength(1);
   });
 
-  it('beendet das Spiel, wenn das Deck erschöpft ist, mit bestem Spieler als Gewinner', async () => {
+  it('beendet das Spiel, wenn das Deck erschöpft ist; der Führende gewinnt', async () => {
     const h = makeHarness(testSongs(6));
     const room = await setupRoom(h, { genres: ['pop', 'rock'], targetCards: 20 });
-    // Pool-Warnung vorhanden, Start trotzdem erlaubt
+    expect(okState(await room.host.sync(room.roomId)).pool.level).toBe('warn'); // Warnung, aber Start erlaubt
     let st = okState(await room.host.sync(room.roomId));
-    expect(st.pool.level).toBe('warn');
-    for (let i = 0; i < 60 && st.phase !== 'finished'; i++) {
-      const cur = okState(await room.host.sync(room.roomId));
-      const active = cur.turn!.playerId === room.hostPid ? room.host : room.guest;
-      const drawn = await active.act(room.roomId, { type: 'draw' });
-      st = okState(drawn);
-      if (st.phase === 'finished') break;
-      st = okState(await active.act(room.roomId, { type: 'place', position: 0 }));
+    for (let i = 0; i < 20 && st.phase !== 'finished'; i++) {
+      const { active, song, me, state } = await drawCurrent(room).catch(async () => {
+        // Deck leer: die Ziehaktion selbst beendet das Spiel
+        return { active: null, song: null, me: null, state: null } as never;
+      });
+      if (!active) break;
+      st = state;
+      st = okState(await active.act(room.roomId, { type: 'place', position: posFor(me.timeline, song.releaseYear) }));
       if (st.phase === 'finished') break;
       st = okState(await active.act(room.roomId, { type: 'nextTurn' }));
     }
-    // Falsch platzierte Karten werden recycelt; mit nur korrekt Gespielten würde das Deck enden.
-    expect(['playing', 'finished']).toContain(st.phase);
+    st = okState(await room.host.sync(room.roomId));
+    expect(st.phase).toBe('finished');
+    expect(st.endReason).toBe('deck_empty');
+    expect(st.winnerId).toBeTruthy();
+    const best = Math.max(...st.players.map((p) => p.placedCorrect));
+    expect(st.players.find((p) => p.id === st.winnerId)!.placedCorrect).toBe(best);
   });
 });
 
