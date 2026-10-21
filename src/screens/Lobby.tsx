@@ -5,6 +5,7 @@ import { genreLabel } from '@engine/genres.ts';
 import { ConnectionBadge } from '../components/ConnectionBadge.tsx';
 import { Logo } from '../components/Logo.tsx';
 import { SettingsForm } from '../components/SettingsForm.tsx';
+import { SpeakerPicker } from '../components/SpeakerPicker.tsx';
 import { ThemeToggle } from '../components/ThemeToggle.tsx';
 import { Button, Chip, IconButton } from '../components/ui.tsx';
 import { copyText, formatCode, inviteLink } from '../lib/format.ts';
@@ -186,6 +187,10 @@ export function Lobby() {
             <h2 id="set-h" className="panel-title">
               Einstellungen {!isHost && <span className="muted small">· vom Host festgelegt</span>}
             </h2>
+            <section className="set-block">
+              <h3>Musik abspielen auf</h3>
+              <SpeakerPicker players={state.players} hostId={state.hostId} meId={me.id} value={state.settings.speakerId ?? null} onChange={(id) => void act({ type: 'updateSettings', patch: { speakerId: id } })} disabled={!isHost || busy} />
+            </section>
             {isHost ? (
               <SettingsForm settings={settings} counts={state.catalog} onChange={change} playerCount={state.players.length} />
             ) : (

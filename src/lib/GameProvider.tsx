@@ -28,6 +28,8 @@ interface GameContextValue {
   me: PlayerPublic | null;
   isHost: boolean;
   isMyTurn: boolean;
+  /** Dieses Gerät spielt die Musik (Spieler am Zug oder Party-Lautsprecher). */
+  audioHere: boolean;
   busy: boolean;
   toasts: Toast[];
   audio: AudioController;
@@ -99,6 +101,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const busyRef = useRef(false);
   const toastSeq = useRef(0);
   const audioCard = useRef<string | null>(null);
+  const audioHereRef = useRef(false);
   const stateRef = useRef<PublicState | null>(null);
   stateRef.current = state;
 
@@ -229,12 +232,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [state, session, clearSession]);
 
-  // ── Audio nur für den aktiven Spieler mit gezogener Karte ──
+  // ── Audio nur auf dem Gerät, das die Musik spielen soll: Spieler am Zug – oder im Party-Modus der Lautsprecher ──
+  const speakerId = state?.settings.speakerId ?? null;
+  const audioHere = speakerId ? me?.id === speakerId : isMyTurn;
+  audioHereRef.current = audioHere;
   const turnCard = state?.turn?.cardId ?? null;
   const phase = state?.phase;
   useEffect(() => {
     if (!backend || !roomId) return;
-    const shouldPlay = isMyTurn && Boolean(turnCard) && phase === 'playing';
+    const shouldPlay = audioHere && Boolean(turnCard) && phase === 'playing';
     if (!shouldPlay) {
       if (audioCard.current) {
         audio.stopAndClear();
@@ -253,7 +259,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setAudioReady(true);
       }
     })();
-  }, [backend, roomId, isMyTurn, turnCard, phase, audio]);
+  }, [backend, roomId, audioHere, turnCard, phase, audio]);
+
+  // Party-Modus: Wiederholt der Spieler am Zug den Ausschnitt, startet der Lautsprecher neu.
+  const replays = state?.turn?.replaysUsed ?? 0;
+  const lastReplay = useRef<{ card: string | null; n: number }>({ card: null, n: 0 });
+  useEffect(() => {
+    const prev = lastReplay.current;
+    lastReplay.current = { card: turnCard, n: replays };
+    if (audioHere && !isMyTurn && prev.card === turnCard && replays > prev.n && audio.getSnapshot().status !== 'idle') void audio.restart();
+  }, [audio, audioHere, isMyTurn, turnCard, replays]);
 
   const act = useCallback(
     async (action: ClientAction): Promise<ServerResponse> => {
@@ -277,7 +292,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             applyState(res.state);
             setConnection((c) => (c === 'reconnecting' ? 'online' : c));
           }
-          if (res.audio) {
+          if (res.audio && audioHereRef.current) {
             if (action.type === 'replay' && audio.getSnapshot().status !== 'idle' && audio.getSnapshot().status !== 'error') {
               void audio.restart();
             } else {
@@ -345,6 +360,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     me,
     isHost,
     isMyTurn,
+    audioHere,
     busy,
     toasts,
     audio,

@@ -149,6 +149,37 @@ describe('Geheimhaltung', () => {
     expect(again.ok && again.audio?.kind).toBe('synth');
   });
 
+  it('Party-Modus: nur der gewählte Lautsprecher-Spieler erhält Audio, auch wenn er nicht am Zug ist', async () => {
+    const h = makeHarness();
+    const room = await setupRoom(h);
+    const st = okState(await room.host.sync(room.roomId));
+    const guestId = st.players.find((p) => p.id !== st.hostId)!.id;
+    // Nur der Host darf den Lautsprecher wählen; unbekannte Spieler werden abgelehnt.
+    expectErr(await room.guest.act(room.roomId, { type: 'updateSettings', patch: { speakerId: guestId } }), 'not_host');
+    expectErr(await room.host.act(room.roomId, { type: 'updateSettings', patch: { speakerId: 'gibt-es-nicht' } }), 'invalid_settings');
+    // Während des Spiels sind andere Einstellungen gesperrt, der Lautsprecher aber wechselbar.
+    expectErr(await room.host.act(room.roomId, { type: 'updateSettings', patch: { targetCards: 5 } }), 'invalid_phase');
+    const set = await room.host.act(room.roomId, { type: 'updateSettings', patch: { speakerId: guestId } });
+    expect(okState(set).settings.speakerId).toBe(guestId);
+
+    await drawCurrent(room);
+    // Der Lautsprecher (Gast) bekommt die Audioquelle – unabhängig davon, wer am Zug ist.
+    const forSpeaker = await room.guest.act(room.roomId, { type: 'audio' });
+    expect(forSpeaker.ok && forSpeaker.audio?.kind).toBe('synth');
+  });
+
+  it('Party-Modus: verlässt der Lautsprecher das Spiel, spielt wieder jedes Gerät', async () => {
+    const h = makeHarness();
+    const room = await setupRoom(h);
+    const st = okState(await room.host.sync(room.roomId));
+    const guestId = st.players.find((p) => p.id !== st.hostId)!.id;
+    await room.host.act(room.roomId, { type: 'updateSettings', patch: { speakerId: guestId } });
+    const left = await room.guest.act(room.roomId, { type: 'leave' });
+    expect(left.ok).toBe(true);
+    const after = okState(await room.host.sync(room.roomId));
+    expect(after.settings.speakerId).toBeNull();
+  });
+
   it('der Client kann serverinterne Aktionen nicht auslösen', async () => {
     const h = makeHarness();
     const room = await setupRoom(h);

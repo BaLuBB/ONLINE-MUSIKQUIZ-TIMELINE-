@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { ArrowRight, Check, Layers, LogOut, PenLine, SkipForward, X } from 'lucide-react';
+import { ArrowRight, Check, Layers, LogOut, PenLine, SkipForward, Speaker, X } from 'lucide-react';
 import type { RevealedCard } from '@engine/types.ts';
 import { AudioController } from '../audio/AudioController.ts';
 import { AudioPanel, ListeningIndicator } from '../components/AudioPanel.tsx';
@@ -8,6 +8,7 @@ import { Logo } from '../components/Logo.tsx';
 import { PlayerStrip } from '../components/PlayerStrip.tsx';
 import { FaceDownCard, FlipCard } from '../components/SongCard.tsx';
 import { ThemeToggle } from '../components/ThemeToggle.tsx';
+import { SpeakerPicker } from '../components/SpeakerPicker.tsx';
 import { Timeline } from '../components/Timeline.tsx';
 import { Button, Chip, Dialog, Field, IconButton } from '../components/ui.tsx';
 import { TurnFeed } from '../components/TurnFeed.tsx';
@@ -17,11 +18,12 @@ import { formatCode } from '../lib/format.ts';
 import { resolveReveal } from '../lib/revealAudio.ts';
 
 export function Game() {
-  const { state, me, session, presence, isMyTurn, isHost, act, busy, audio, leave, backend } = useGame();
+  const { state, me, session, presence, isMyTurn, audioHere, isHost, act, busy, audio, leave, backend } = useGame();
   const [selected, setSelected] = useState<number | null>(null);
   const [guessOpen, setGuessOpen] = useState(false);
   const [viewId, setViewId] = useState<string | null>(null);
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [speakerOpen, setSpeakerOpen] = useState(false);
 
   const turnId = state?.turn?.playerId ?? null;
   const cardId = state?.turn?.cardId ?? null;
@@ -49,6 +51,7 @@ export function Game() {
   const activeName = active?.name ?? '…';
   const canPlace = isMyTurn && drawn;
   const viewingActive = viewed.id === turnId;
+  const speaker = state.players.find((p) => p.id === state.settings.speakerId) ?? null;
   const replaysLeft = state.settings.maxReplays > 0 ? Math.max(0, state.settings.maxReplays - (state.turn?.replaysUsed ?? 0)) : null;
 
   const place = async () => {
@@ -85,6 +88,11 @@ export function Game() {
         <div className="topbar-right">
           <ConnectionBadge />
           <ThemeToggle />
+          {isHost && (
+            <IconButton label="Musik abspielen auf …" onClick={() => setSpeakerOpen(true)} className={speaker ? 'on' : ''}>
+              <Speaker size={18} />
+            </IconButton>
+          )}
           <IconButton label="Spiel verlassen" onClick={() => setConfirmLeave(true)}>
             <LogOut size={18} />
           </IconButton>
@@ -135,17 +143,31 @@ export function Game() {
               </>
             ) : isMyTurn && drawn ? (
               <>
-                <AudioPanel
-                  audio={audio}
-                  canReplay={state.settings.allowReplay}
-                  replaysLeft={replaysLeft}
-                  onReplay={() => void act({ type: 'replay' })}
-                />
+                {audioHere ? (
+                  <AudioPanel audio={audio} canReplay={state.settings.allowReplay} replaysLeft={replaysLeft} onReplay={() => void act({ type: 'replay' })} />
+                ) : (
+                  <div className="stack-md center">
+                    <p className="speaker-note">
+                      <Speaker size={16} aria-hidden /> Die Musik läuft über das Gerät von {speaker?.name ?? 'einem Mitspieler'}.
+                    </p>
+                    {state.settings.allowReplay && (
+                      <Button size="sm" disabled={replaysLeft === 0 || busy} onClick={() => void act({ type: 'replay' })}>
+                        Nochmal von vorn{replaysLeft !== null ? ` (${replaysLeft})` : ''}
+                      </Button>
+                    )}
+                  </div>
+                )}
                 <div className="action-desktop">{actionBar}</div>
                 <p className="muted small center">{selected === null ? 'Tippe im Zeitstrahl auf eine Position oder ziehe die Karte dorthin.' : 'Position gewählt – bestätige mit „Karte platzieren“.'}</p>
               </>
             ) : isMyTurn || !active ? null : (
               <>
+                {audioHere && drawn && <AudioPanel audio={audio} canReplay={false} replaysLeft={null} onReplay={() => {}} />}
+                {speaker && !audioHere && (
+                  <p className="speaker-note">
+                    <Speaker size={16} aria-hidden /> Die Musik läuft über das Gerät von {speaker.name}.
+                  </p>
+                )}
                 <ListeningIndicator name={activeName} />
                 {drawn && state.turn?.guessMade && <p className="muted small">{activeName} hat einen Titel getippt.</p>}
                 {!drawn && <p className="muted small">{activeName} zieht gleich eine Karte.</p>}
@@ -193,6 +215,18 @@ export function Game() {
         {canPlace && <div className="action-mobile">{actionBar}</div>}
         <TurnFeed recent={state.recent ?? []} titleBonus={state.settings.titleBonus} />
       </main>
+
+      <Dialog open={speakerOpen} onClose={() => setSpeakerOpen(false)} title="Musik abspielen auf">
+        <div className="stack-lg">
+          <p className="muted small">Für Partys: Wähle das Gerät, das an der Box hängt. Alle anderen Geräte bleiben still. Du kannst das jederzeit wechseln.</p>
+          <SpeakerPicker players={state.players} hostId={state.hostId} meId={me.id} value={state.settings.speakerId ?? null} onChange={(id) => void act({ type: 'updateSettings', patch: { speakerId: id } })} disabled={busy} />
+          <div className="dialog-actions">
+            <Button variant="primary" onClick={() => setSpeakerOpen(false)}>
+              Fertig
+            </Button>
+          </div>
+        </div>
+      </Dialog>
 
       <GuessDialog open={guessOpen} onClose={() => setGuessOpen(false)} />
 
@@ -292,7 +326,7 @@ function ResultPanel() {
         )}
         <li>Gesamt: {r.totalPoints} Pkt.</li>
       </ul>
-      {r.correct && <RevealPlayer key={r.cardId} card={card} />}
+      {r.correct && (!state.settings.speakerId || state.settings.speakerId === me.id) && <RevealPlayer key={r.cardId} card={card} />}
       {canContinue ? (
         <Button variant="primary" icon={<ArrowRight size={16} />} loading={busy} onClick={() => void act({ type: 'nextTurn' })}>
           Weiter
