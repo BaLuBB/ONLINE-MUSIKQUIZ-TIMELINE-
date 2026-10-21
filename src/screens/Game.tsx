@@ -274,10 +274,13 @@ function ResultPanel() {
         )}
         <li>Gesamt: {r.totalPoints} Pkt.</li>
       </ul>
-      <Button variant="primary" icon={<ArrowRight size={16} />} disabled={!canContinue} loading={busy} onClick={() => void act({ type: 'nextTurn' })}>
-        Weiter
-      </Button>
-      {!canContinue && <p className="muted small">Der aktive Spieler schaltet gleich weiter …</p>}
+      {canContinue ? (
+        <Button variant="primary" icon={<ArrowRight size={16} />} loading={busy} onClick={() => void act({ type: 'nextTurn' })}>
+          Weiter
+        </Button>
+      ) : (
+        <p className="muted small">{who} schaltet gleich weiter …</p>
+      )}
     </div>
   );
 }
