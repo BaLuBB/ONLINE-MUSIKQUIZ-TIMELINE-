@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="description" content="TIMELINE – das Online-Musikquiz: Songs erkennen, chronologisch einordnen, gemeinsam spielen." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>TIMELINE – Musikquiz</title>
+    <script>
+      // Theme vor dem ersten Rendern setzen (verhindert Aufblitzen)
+      try {
+        var t = localStorage.getItem('timeline.theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
