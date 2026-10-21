@@ -76,7 +76,8 @@ function presetFor(d: Settings['difficulty'], patch: Partial<Settings>): Partial
 
 export function JoinDialog() {
   const { dialog, close, joinCode } = useUI();
-  const { joinRoom } = useGame();
+  const { joinRoom, backend } = useGame();
+  const local = backend?.mode === 'local';
   const open = dialog === 'join';
   const [name, setName] = useState(savedName());
   const [code, setCode] = useState(joinCode);
@@ -105,6 +106,11 @@ export function JoinDialog() {
   return (
     <Dialog open={open} onClose={close} title="Spiel beitreten">
       <form onSubmit={submit} className="stack-lg" noValidate>
+        {local && (
+          <p className="banner banner-warn" role="note">
+            Lokaler Testmodus: Es gibt nur Räume aus <strong>diesem Browser</strong>. Der Raum muss in einem anderen Tab desselben Browsers erstellt worden sein – nicht auf einem anderen Gerät.
+          </p>
+        )}
         <Field label="Dein Name" value={name} onChange={(e) => setName(e.target.value)} maxLength={20} autoComplete="nickname" required autoFocus={!joinCode || Boolean(name)} error={fe.name} />
         <Field
           label="Raumcode"
@@ -119,7 +125,7 @@ export function JoinDialog() {
           inputMode="text"
           placeholder="ABC 123"
           required
-          error={fe.code}
+          error={fe.code ? (local ? `${fe.code} Im Testmodus sind nur Räume aus diesem Browser erreichbar.` : fe.code) : null}
         />
         {fe.general && (
           <p className="form-error" role="alert">

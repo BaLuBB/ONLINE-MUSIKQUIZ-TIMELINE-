@@ -1,7 +1,8 @@
 name: Pages
 # Veröffentlicht die Seite auf GitHub Pages: https://<user>.github.io/<repo>/
-# Ohne Repository-Variablen VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY wird der lokale Testmodus
-# (Demo, nur im eigenen Browser) veröffentlicht; mit beiden Variablen der echte Online-Build.
+# Ohne Repository-Variablen VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY wird der Direktverbindungs-Modus
+# (P2P: Geräte spielen ohne Backend miteinander, Host-Browser = Server) veröffentlicht; mit beiden
+# Variablen der Supabase-Online-Build.
 on:
   push:
     branches: [main]
@@ -32,7 +33,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
         run: npm run build -- --base ./ && echo "SITE_DIR=dist" >> "$GITHUB_ENV"
-      - name: Build (Demo im lokalen Testmodus)
+      - name: Build (Direktverbindung / P2P)
         if: ${{ vars.VITE_SUPABASE_URL == '' || vars.VITE_SUPABASE_ANON_KEY == '' }}
         run: npm run build:demo -- --base ./ && echo "SITE_DIR=dist-demo" >> "$GITHUB_ENV"
       - uses: actions/upload-pages-artifact@v3

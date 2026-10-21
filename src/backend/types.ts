@@ -12,9 +12,9 @@ export interface SubscribeHandlers {
   onStatus(status: ConnectionStatus): void;
 }
 
+/** 'online' = Supabase-Server, 'p2p' = Direktverbindung zwischen Geräten (Host-Browser als Server), 'local' = Entwicklungsmodus (nur ein Browser). */
 export interface Backend {
-  /** 'online' = echter Mehrspieler-Server, 'local' = Entwicklungsmodus im Browser. */
-  mode: 'online' | 'local';
+    mode: 'online' | 'p2p' | 'local';
   request(req: ServerRequest): Promise<ServerResponse>;
   /** Liest den aktuellen Zustand (Polling/Reconnect). */
   fetchState(roomId: string): Promise<PublicState | null>;

@@ -56,6 +56,8 @@ export interface PlayerPublic {
   id: string;
   name: string;
   joinedAt: number;
+  /** Stabile Spielerfarbe (Index 0–9), beim Beitritt vergeben. */
+  color: number;
   timeline: RevealedCard[];
   /** Vom Spieler selbst korrekt platzierte Karten (ohne Startkarte). */
   placedCorrect: number;
@@ -74,6 +76,8 @@ export interface TurnPublic {
 
 export interface TurnResult {
   playerId: string;
+  playerName: string;
+  playerColor: number;
   cardId: string;
   card: RevealedCard;
   position: number;
@@ -130,6 +134,8 @@ export interface PublicState {
   gameNo: number;
   turn: TurnPublic | null;
   lastResult: TurnResult | null;
+  /** Die letzten Züge aller Spieler (öffentlich, für den Zugverlauf). */
+  recent: TurnResult[];
   winnerId: string | null;
   endReason: EndReason | null;
   deckRemaining: number;

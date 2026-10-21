@@ -10,10 +10,23 @@ Ein Multiplayer-Musikquiz nach dem Prinzip von Hitster: Songs erkennen, die verd
 | Server-Kern (Beitritt, Aktionen, Rate-Limits, Idempotenz, Host-Übergabe) | ✅ implementiert und getestet (In-Memory-Store **und** echtes Postgres 16) |
 | Datenbank, RLS, Postgres-Funktionen | ✅ Migration läuft auf Postgres 16; RLS/Rechte/CAS in `tests/pg.integration.test.ts` geprüft – **mit nachgebildeten Supabase-Rollen**, nicht auf einem echten Supabase-Projekt |
 | Frontend (Start, Lobby, Spiel, Podest, responsiv, dunkler Modus) | ✅ im Browser per Playwright (Desktop + Smartphone-Viewport) getestet |
-| Lokaler Testmodus (ohne Backend, mehrere Tabs) | ✅ funktioniert; **kein echtes Online-Spiel** |
+| Direktverbindung (P2P, mehrere Geräte ohne eigenes Backend) | ✅ getestet mit zwei getrennten Browser-Kontexten über echtes WebRTC und lokalen Signalserver; ⚠️ **nicht** über das echte Internet/Mobilfunk-NAT und den öffentlichen PeerJS-Broker ausprobiert |
+| Lokaler Testmodus (nur ein Browser, mehrere Tabs) | ✅ funktioniert; kein Mehrgeräte-Spiel |
 | Echter Online-Betrieb über Supabase (Edge Function, Realtime, Anonymous Auth) | ⚠️ vollständig implementiert, aber **nicht gegen ein echtes Supabase-Projekt getestet** (in der Entwicklungsumgebung gab es keinen Zugang). Erst nach der Einrichtung unten ist es ein Online-Spiel. |
 | Audio über iTunes-Vorschauen | ⚠️ implementiert, **nicht live getestet** (Netzwerk der Entwicklungsumgebung gesperrt). Die Treffer-Zuordnung ist unit-getestet, die echte Trefferquote ist unbekannt. Ohne Treffer fällt das Spiel auf einen klar gekennzeichneten Demo-Ton zurück. |
 | Musikbibliothek (290 Songs) | ⚠️ Jahre stammen aus der Startliste bzw. Wissen und sind **nicht extern verifiziert**; unsichere Einträge tragen `review` (siehe „Musikbibliothek“) |
+
+## Spielen auf mehreren Geräten ohne eigenes Backend: Direktverbindung (P2P)
+
+Der Host erstellt das Spiel und bekommt einen Raumcode; die anderen treten auf ihren Geräten mit dem Code (oder Einladungslink) bei. Der **Browser des Hosts ist der Server** (Spiellogik, Geheimnisse, Raum); die Mitspieler verbinden sich per WebRTC ([PeerJS](https://peerjs.com)) direkt mit ihm. Der öffentliche PeerJS-Cloud-Broker vermittelt nur den Verbindungsaufbau. So läuft die GitHub-Pages-Seite.
+
+Grenzen, die man kennen muss:
+* Der Host muss die Seite **geöffnet und aktiv** lassen (Smartphone-Display aus oder App-Wechsel kann die Verbindung kappen). Lädt der Host neu, stellt er den Raum wieder her und die Mitspieler verbinden sich automatisch erneut. Verlässt der Host den Raum, endet das Spiel für alle (kein Host-Wechsel).
+* Der Host-Browser kennt alle Geheimnisse; wer technisch versiert ist, kann als Host schummeln. Für Spiele unter Freunden gedacht; für manipulationssichere Spiele ist das Supabase-Backend da.
+* Manche Netze (Firmen-/Uni-WLAN, strenge Mobilfunk-NAT) blockieren WebRTC. Es werden freie STUN-/TURN-Server von PeerJS genutzt; eigene lassen sich über `VITE_ICE_SERVERS` eintragen, ein eigener Signalserver über `VITE_PEER_HOST` (`npm run peer-server` startet einen lokalen).
+* Der öffentliche PeerJS-Broker ist ein kostenloser Gemeinschaftsdienst ohne Verfügbarkeitszusage.
+
+Test: `npm run test:e2e:p2p` (startet einen lokalen Signalserver; zwei getrennte Browser-Kontexte spielen eine ganze Partie).
 
 ## Schnellstart (lokaler Testmodus, ohne Backend)
 
@@ -29,9 +42,10 @@ Produktions-Builds (`npm run build`) enthalten den lokalen Modus und die Songbib
 ## Tests
 
 ```bash
-npm test                 # Vitest: Engine, Server-Kern, Bibliothek (62 Tests)
+npm test                 # Vitest: Engine, Server-Kern, Bibliothek (66 Tests)
 npm run typecheck
 npm run test:e2e         # Playwright gegen den lokalen Testmodus (Desktop + Mobil)
+npm run test:e2e:p2p     # Playwright: zwei „Geräte“ über Direktverbindung (lokaler Signalserver)
 npm run check:songs      # Konsistenz der Bibliothek; mit  -- --musicbrainz  Jahre gegen MusicBrainz prüfen
 ```
 
@@ -108,6 +122,10 @@ Recherchiert anhand öffentlich zugänglicher Händler-/Herstellerbeschreibungen
 * **Songwiederholung:** Ein Song wird erst wieder gezogen, wenn Deck und Ablage erschöpft sind (abgelegte Karten werden dann neu gemischt). Vor dem Start warnt die Lobby bei zu kleiner Auswahl.
 * **Beitritt:** nur vor dem Start. Wiedereintritt derselben Sitzung (Reload) ist jederzeit möglich.
 * **Revanche:** „Noch einmal spielen“ startet mit denselben Spielern und Einstellungen eine neue Partie (neue Spiel-ID, Zähler null); frühere Ergebnisse stehen getrennt in `history`/`games`.
+
+## Cover, Spielerfarben und Zugverlauf
+
+Aufgedeckte Karten zeigen Titel, Interpret, Jahr und das **Cover** (iTunes Search API, vom Browser nach dem Aufdecken geholt, zwischengespeichert; ohne Treffer ein Platzhalter). Jeder Spieler hat eine **feste Farbe** (Spielerübersicht, Kartenrand im Zeitstrahl, Ergebnis). Der **Zugverlauf** unter dem Zeitstrahl zeigt allen Spielern die letzten Züge: wer es war, Cover/Titel, richtig oder falsch eingeordnet und den **Titel-Tipp** des Spielers samt Ergebnis. Die Cover-Abfrage ist wie die Audio-Auflösung nicht gegen die echte API getestet (Netzwerk gesperrt).
 
 ## Audio
 

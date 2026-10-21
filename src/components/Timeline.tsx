@@ -13,6 +13,8 @@ interface Props {
   lastTone?: 'correct' | 'wrong';
   startCardId?: string;
   ownerName: string;
+  /** Farbe des Zeitstrahl-Besitzers (CSS-Wert) */
+  ownerColor?: string;
 }
 
 function slotLabel(cards: RevealedCard[], i: number): string {
@@ -24,7 +26,7 @@ function slotLabel(cards: RevealedCard[], i: number): string {
   return `Zwischen ${l.year} und ${r.year} einordnen`;
 }
 
-export function Timeline({ cards, interactive, selected, onSelect, lastCardId, lastTone, startCardId, ownerName }: Props) {
+export function Timeline({ cards, interactive, selected, onSelect, lastCardId, lastTone, startCardId, ownerName, ownerColor }: Props) {
   const scroller = useRef<HTMLDivElement>(null);
 
   // Gewählten Platz bzw. neue Karte in den sichtbaren Bereich scrollen
@@ -73,6 +75,7 @@ export function Timeline({ cards, interactive, selected, onSelect, lastCardId, l
                   card={cards[i]}
                   tone={cards[i].cardId === lastCardId ? lastTone : cards[i].cardId === startCardId ? 'start' : undefined}
                   flipIn={cards[i].cardId === lastCardId}
+                  color={ownerColor}
                 />
               </div>
             )}

@@ -42,6 +42,8 @@ export const LIMITS = {
   guessMax: 100,
   historyMax: 5,
   processedMax: 40,
+  recentMax: 12,
+  colorCount: 10,
   /** Nach dieser Zeit darf jeder Spieler die Ergebnisanzeige weiterschalten. */
   resolveGraceMs: 8000,
 } as const;
@@ -260,7 +262,7 @@ export function createRoom(
     phase: 'waiting',
     hostId: input.hostId,
     settings: applied.settings,
-    players: [newPlayer(input.hostId, name, input.now)],
+    players: [newPlayer(input.hostId, name, input.now, 0)],
     turnOrder: [],
     turnIndex: 0,
     round: 0,
@@ -268,6 +270,7 @@ export function createRoom(
     gameNo: 0,
     turn: null,
     lastResult: null,
+    recent: [],
     winnerId: null,
     endReason: null,
     deckRemaining: 0,
@@ -288,8 +291,15 @@ export function createRoom(
   };
 }
 
-function newPlayer(id: string, name: string, now: number): PlayerPublic {
-  return { id, name, joinedAt: now, timeline: [], placedCorrect: 0, bonusPoints: 0 };
+function newPlayer(id: string, name: string, now: number, color: number): PlayerPublic {
+  return { id, name, joinedAt: now, color, timeline: [], placedCorrect: 0, bonusPoints: 0 };
+}
+
+/** Kleinste noch freie Farbe (bleibt über die Partie stabil, auch wenn Spieler gehen). */
+function freeColor(players: readonly PlayerPublic[]): number {
+  const used = new Set(players.map((p) => p.color));
+  for (let c = 0; c < LIMITS.colorCount; c++) if (!used.has(c)) return c;
+  return players.length % LIMITS.colorCount;
 }
 
 function refreshPool(state: PublicState, songs: readonly Song[]): void {
@@ -500,7 +510,7 @@ function doJoin(w: Work, playerId: string, rawName: string): Err {
     return err('name_taken', 'Dieser Name ist in der Lobby schon vergeben.');
   }
   if (player(state, playerId)) return err('forbidden', 'Du bist bereits beigetreten.');
-  state.players.push(newPlayer(playerId, name, w.ctx.now));
+  state.players.push(newPlayer(playerId, name, w.ctx.now, freeColor(state.players)));
   refreshPool(state, w.ctx.songs);
   w.events.push({ type: 'player_joined', payload: { playerId, name } });
   return null;
@@ -606,6 +616,7 @@ function doStart(w: Work, isRestart: boolean): Err {
   state.winnerId = null;
   state.endReason = null;
   state.lastResult = null;
+  state.recent = [];
   state.players = state.players.map((p) => ({ ...p, timeline: [], placedCorrect: 0, bonusPoints: 0 }));
   secret.deck = shuffle(pool.map((s) => s.id), ctx.rng);
   secret.discard = [];
@@ -641,6 +652,7 @@ function doToLobby(w: Work): Err {
   s.turnIndex = 0;
   s.round = 0;
   s.lastResult = null;
+  s.recent = [];
   s.winnerId = null;
   s.endReason = null;
   s.deckRemaining = 0;
@@ -794,6 +806,8 @@ function doPlace(w: Work, position: number): Err {
   state.deckRemaining = secret.deck.length + secret.discard.length;
   state.lastResult = {
     playerId: me.id,
+    playerName: me.name,
+    playerColor: me.color,
     cardId: cur.cardId,
     card,
     position,
@@ -805,6 +819,7 @@ function doPlace(w: Work, position: number): Err {
     totalPoints: totalPoints(me),
     resolvedAt: w.ctx.now,
   };
+  state.recent = [...state.recent, state.lastResult].slice(-LIMITS.recentMax);
   w.events.push({ type: 'card_placed', payload: { playerId: me.id, cardId: cur.cardId, position } });
   w.events.push({
     type: 'placement_checked',

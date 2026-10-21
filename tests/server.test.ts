@@ -555,3 +555,17 @@ describe('Audio-Rückfall', () => {
     for (let i = 0; i < 5; i++) expect((await r2.resolve(song)).kind).toBe('none');
   });
 });
+
+describe('Cover-Zuordnung', () => {
+  it('wählt das passende Ergebnis auch ohne Vorschau-URL und liefert das Cover', async () => {
+    const { pickBestMatch } = await import('@engine/audio.ts');
+    const results = [
+      { trackName: 'Wonderwall (Live)', artistName: 'Oasis', artworkUrl100: 'live.jpg' },
+      { trackName: 'Wonderwall', artistName: 'Oasis', artworkUrl100: 'studio.jpg' },
+      { trackName: 'Wonderwall', artistName: 'Someone Else', artworkUrl100: 'cover.jpg' },
+    ];
+    const best = pickBestMatch({ title: 'Wonderwall', artist: 'Oasis' }, results, false);
+    expect(best?.artworkUrl100).toBe('studio.jpg');
+    expect(pickBestMatch({ title: 'Wonderwall', artist: 'Oasis' }, results, true)).toBeNull(); // ohne Preview kein Treffer
+  });
+});

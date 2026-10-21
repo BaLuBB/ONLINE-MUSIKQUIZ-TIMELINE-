@@ -25,6 +25,10 @@
   --card-back-ink: rgba(255, 255, 255, 0.55);
   --overlay: rgba(0, 0, 0, 0.32);
 
+  /* Spielerfarben (Index 0–9): kräftig, aber ruhig; je Thema auf Kontrast abgestimmt */
+  --p0: #0a6fd6; --p1: #1d9a4b; --p2: #d9730d; --p3: #8a4fd0; --p4: #d6336c;
+  --p5: #0f9aa8; --p6: #b08a00; --p7: #c92a1f; --p8: #4c6ef5; --p9: #6d7a1e;
+
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -93,6 +97,8 @@
     --card-back: #f5f5f7;
     --card-back-ink: rgba(0, 0, 0, 0.5);
     --overlay: rgba(0, 0, 0, 0.6);
+    --p0: #4aa3ff; --p1: #43d17c; --p2: #ff9f43; --p3: #b98cff; --p4: #ff6b9d;
+    --p5: #36cfdd; --p6: #f0c93a; --p7: #ff6961; --p8: #8aa0ff; --p9: #b8c94a;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
     --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6);
@@ -123,6 +129,8 @@
   --card-back: #f5f5f7;
   --card-back-ink: rgba(0, 0, 0, 0.5);
   --overlay: rgba(0, 0, 0, 0.6);
+  --p0: #4aa3ff; --p1: #43d17c; --p2: #ff9f43; --p3: #b98cff; --p4: #ff6b9d;
+  --p5: #36cfdd; --p6: #f0c93a; --p7: #ff6961; --p8: #8aa0ff; --p9: #b8c94a;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
   --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6);

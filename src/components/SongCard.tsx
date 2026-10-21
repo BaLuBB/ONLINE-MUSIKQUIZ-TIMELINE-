@@ -1,4 +1,6 @@
+import { useState, type CSSProperties } from 'react';
 import type { RevealedCard } from '@engine/types.ts';
+import { useCover } from '../lib/covers.ts';
 
 /** Eigenständiges Kartenmotiv: konzentrische Rillen einer Schallplatte, ohne Songinformationen. */
 export function CardBackArt() {
@@ -27,29 +29,66 @@ export function FaceDownCard({ label = 'Verdeckte Musikkarte', className = '', f
   );
 }
 
-export function FaceUpCard({ card, tone, className = '', flipIn }: { card: RevealedCard; tone?: 'correct' | 'wrong' | 'start'; className?: string; flipIn?: boolean }) {
+/** Platzhalter, solange (oder falls) kein Cover vorliegt. */
+function CoverFallback() {
   return (
-    <div className={`song-card face-up${tone ? ` tone-${tone}` : ''}${flipIn ? ' flip-in' : ''} ${className}`}>
-      <span className="card-year">{card.year}</span>
-      <span className="card-title" title={card.title}>
-        {card.title}
-      </span>
-      <span className="card-artist" title={card.artist}>
-        {card.artist}
-      </span>
+    <svg viewBox="0 0 100 60" className="cover-fallback" aria-hidden>
+      <g fill="none" stroke="currentColor" strokeWidth="1.2" opacity=".55">
+        <circle cx="50" cy="30" r="22" />
+        <circle cx="50" cy="30" r="14" />
+        <circle cx="50" cy="30" r="3.5" />
+      </g>
+    </svg>
+  );
+}
+
+export function FaceUpCard({
+  card,
+  tone,
+  className = '',
+  flipIn,
+  color,
+}: {
+  card: RevealedCard;
+  tone?: 'correct' | 'wrong' | 'start';
+  className?: string;
+  flipIn?: boolean;
+  /** Farbe des Spielers, dem die Karte gehört (CSS-Wert). */
+  color?: string;
+}) {
+  const cover = useCover(card);
+  const [broken, setBroken] = useState<string | null>(null); // Cover, die nicht geladen werden konnten
+  const showCover = cover && broken !== cover;
+  return (
+    <div
+      className={`song-card face-up${tone ? ` tone-${tone}` : ''}${flipIn ? ' flip-in' : ''} ${className}`}
+      style={color ? ({ '--owner': color } as CSSProperties) : undefined}
+    >
+      <div className="card-cover">
+        {showCover ? <img src={cover} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setBroken(cover)} /> : <CoverFallback />}
+        <span className="card-year">{card.year}</span>
+      </div>
+      <div className="card-body">
+        <span className="card-title" title={card.title}>
+          {card.title}
+        </span>
+        <span className="card-artist" title={card.artist}>
+          {card.artist}
+        </span>
+      </div>
     </div>
   );
 }
 
 /** Karte, die sich beim Aufdecken umdreht: Rückseite → Vorderseite. */
-export function FlipCard({ card, revealed, tone }: { card: RevealedCard | null; revealed: boolean; tone?: 'correct' | 'wrong' }) {
+export function FlipCard({ card, revealed, tone, color }: { card: RevealedCard | null; revealed: boolean; tone?: 'correct' | 'wrong'; color?: string }) {
   return (
     <div className={`flip${revealed ? ' is-flipped' : ''}`}>
       <div className="flip-inner">
         <div className="flip-face flip-front">
           <FaceDownCard />
         </div>
-        <div className="flip-face flip-back">{card ? <FaceUpCard card={card} tone={tone} /> : <FaceDownCard />}</div>
+        <div className="flip-face flip-back">{card ? <FaceUpCard card={card} tone={tone} color={color} /> : <FaceDownCard />}</div>
       </div>
     </div>
   );

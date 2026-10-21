@@ -1,6 +1,7 @@
 import type { PlayerPublic, Settings } from '@engine/types.ts';
 import { progressOf, totalPoints } from '@engine/engine.ts';
 import { Crown, WifiOff } from 'lucide-react';
+import { colorVar } from '../lib/colors.ts';
 
 interface Props {
   players: PlayerPublic[];
@@ -16,7 +17,7 @@ interface Props {
 export function PlayerStrip({ players, settings, activeId, meId, hostId, presence, viewId, onView }: Props) {
   return (
     <ul className="player-strip" aria-label="Spielerübersicht">
-      {players.map((p) => {
+      {players.map((p, idx) => {
         const progress = progressOf(p, settings);
         const away = presence.size > 0 && !presence.has(p.id);
         return (
@@ -24,11 +25,13 @@ export function PlayerStrip({ players, settings, activeId, meId, hostId, presenc
             <button
               type="button"
               className={`pcard${p.id === activeId ? ' active' : ''}${p.id === viewId ? ' viewing' : ''}${away ? ' away' : ''}`}
+              style={{ '--pc': colorVar(p.color, idx) } as React.CSSProperties}
               onClick={() => onView(p.id)}
               aria-current={p.id === activeId ? 'true' : undefined}
               aria-pressed={p.id === viewId}
             >
               <span className="pcard-top">
+                <span className="swatch" aria-hidden />
                 <span className="pcard-name">
                   {p.name}
                   {p.id === meId && <small> (du)</small>}

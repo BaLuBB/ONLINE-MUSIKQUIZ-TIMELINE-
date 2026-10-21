@@ -7,6 +7,7 @@ const executablePath = process.env.PW_CHROMIUM_PATH || undefined;
 
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: /p2p\.spec\.ts/, // läuft mit eigener Konfiguration (playwright.p2p.config.ts)
   timeout: 90_000,
   retries: 0,
   reporter: [['list']],
