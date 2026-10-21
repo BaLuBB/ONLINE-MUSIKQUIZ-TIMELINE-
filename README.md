@@ -62,6 +62,10 @@ Abgedeckt u. a.: Raum erstellen, Code-Format, Beitritt mit zweitem Client, ungü
 
 ### Frontend veröffentlichen
 
+**GitHub Pages (Workflow `.github/workflows/pages.yml`):** Nach dem Merge nach `main` und einmal Settings → Pages → *Source: GitHub Actions* erscheint die Seite unter `https://<user>.github.io/<repo>/`. Ohne Repository-Variablen wird die Demo im lokalen Testmodus veröffentlicht; setzt du unter Settings → Secrets and variables → Actions → *Variables* `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY`, baut der Workflow den echten Online-Build. Die Supabase-Domain-Einstellungen (Site URL, `ALLOWED_ORIGIN`) entsprechend auf `https://<user>.github.io` setzen.
+
+**Andere Hosts:**
+
 `npm run build` erzeugt `dist/` (statisch). Auf Vercel, Netlify, Cloudflare Pages oder GitHub Pages hosten; die zwei `VITE_*`-Variablen im Build setzen. In Supabase unter Authentication → URL Configuration die Domain als *Site URL* eintragen und `ALLOWED_ORIGIN` der Function auf dieselbe Domain setzen. Einladungslinks haben die Form `https://deine-domain.tld/?code=ABC123`.
 
 ## Architektur
