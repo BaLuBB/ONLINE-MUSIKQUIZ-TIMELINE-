@@ -20,7 +20,7 @@ export default defineConfig({
     { name: 'mobile', use: { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true } },
   ],
   webServer: {
-    command: 'npm run dev -- --port 5173 --strictPort',
+    command: 'VITE_LOCAL_AUDIO=demo npm run dev -- --port 5173 --strictPort',
     url: 'http://localhost:5173',
     reuseExistingServer: true,
     timeout: 60_000,

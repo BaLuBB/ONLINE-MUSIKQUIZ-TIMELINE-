@@ -1,4 +1,4 @@
-import { DemoResolver } from '@engine/audio.ts';
+import { DemoResolver, FallbackResolver, ItunesResolver, type AudioResolver } from '@engine/audio.ts';
 import { randomId } from '@engine/rng.ts';
 import { createGameServer, type RoomRecord } from '@engine/server.ts';
 import type { PublicState, Song } from '@engine/types.ts';
@@ -26,13 +26,24 @@ let songsPromise: Promise<readonly Song[]> | null = null;
 // gelangt sie nie in den Browser.
 const loadSongs = () => (songsPromise ??= import('@engine/songs.ts').then((m) => m.SONGS));
 
+/**
+ * Testmodus-Audio: echte 30-s-Vorschauen über die iTunes Search API (läuft direkt im Browser),
+ * mit automatischem Rückfall auf Demo-Töne. VITE_LOCAL_AUDIO=demo erzwingt Demo-Töne (z. B. für Tests).
+ * Hinweis: Im lokalen Modus ist ohnehin alles im Browser einsehbar – die Geheimhaltung gilt nur online.
+ */
+function localAudio(): AudioResolver {
+  const demo = new DemoResolver();
+  if (import.meta.env.VITE_LOCAL_AUDIO === 'demo') return demo;
+  return new FallbackResolver(new ItunesResolver('DE'), demo);
+}
+
 export function createLocalBackend(): Backend {
   const store = new LocalStorageStore();
   const uid = localUid();
   const server = createGameServer({
     store,
     songs: loadSongs,
-    audio: new DemoResolver(),
+    audio: localAudio(),
   });
 
   return {
