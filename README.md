@@ -117,7 +117,7 @@ Clients erhalten Audio nur als abspielbare Quelle für den **aktiven Spieler**; 
 
 ## Musikbibliothek
 
-`supabase/functions/_shared/songs.ts` – kompaktes Zeilenformat `[Interpret, Titel, Jahr, 'genres', { aliases?, review? }]`. Jahrzehnt-Genres werden automatisch aus dem Jahr abgeleitet. Enthalten sind die 120 Songs der Startliste (das Duplikat Nr. 46 „Journey – Don’t Stop Believin’“ ist entfernt) plus Ergänzungen, damit **jedes** der 53 Genres mindestens 3 Songs hat (Test `deckt jedes Genre …`).
+`supabase/functions/_shared/songs.ts` – kompaktes Zeilenformat `[Interpret, Titel, Jahr, 'genres', { aliases?, review? }]`. Jahrzehnt-Genres werden automatisch aus dem Jahr abgeleitet. Enthalten sind die 120 Songs der Startliste (das Duplikat Nr. 46 „Journey – Don’t Stop Believin’“ ist entfernt) plus Ergänzungen, damit **jedes** der 51 Genres mindestens 3 Songs hat (Test `deckt jedes Genre …`).
 
 * `review` markiert Einträge, bei denen Album-/Single-Jahr abweichen oder die Angabe unsicher ist (derzeit 22). `npm run check:songs` listet sie; `-- --musicbrainz` gleicht alle Jahre mit MusicBrainz ab (benötigt Netzwerk, ca. 1 s pro Song, **in der Entwicklungsumgebung nicht ausgeführt**).
 * Bei Neuauflagen gilt das ursprüngliche Jahr; Cover-Versionen (z. B. Whitney Houston – I Will Always Love You) sind als solche markiert.
