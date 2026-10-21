@@ -11,7 +11,7 @@ import { copyText, formatCode, inviteLink } from '../lib/format.ts';
 import { useGame } from '../lib/GameProvider.tsx';
 
 export function Lobby() {
-  const { state, me, isHost, presence, act, leave, notify, busy } = useGame();
+  const { state, me, isHost, presence, act, leave, notify, busy, backend } = useGame();
   const [copied, setCopied] = useState<'code' | 'link' | null>(null);
 
   // Host-Einstellungen: lokal sofort anzeigen, gebündelt an den Server senden.
@@ -88,6 +88,12 @@ export function Lobby() {
           <p className="eyebrow">{state.settings.roomName ? state.settings.roomName : 'Lobby'}</p>
           <h1>Warte auf Mitspieler</h1>
         </div>
+
+        {backend?.mode === 'local' && (
+          <p className="banner banner-warn" role="note">
+            Lokaler Testmodus: Mitspieler müssen im <strong>selben Browser</strong> einen neuen Tab öffnen und den Code oder Link verwenden. Für Spieler auf anderen Geräten braucht es das Online-Backend (siehe README).
+          </p>
+        )}
 
         <div className="lobby-grid">
           <div className="stack-lg">

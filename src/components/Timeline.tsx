@@ -28,9 +28,13 @@ export function Timeline({ cards, interactive, selected, onSelect, lastCardId, l
   const scroller = useRef<HTMLDivElement>(null);
 
   // Gewählten Platz bzw. neue Karte in den sichtbaren Bereich scrollen
+  // Nur den Zeitstrahl horizontal scrollen – nicht die ganze Seite (kein Springen beim Platzieren).
   useEffect(() => {
-    const el = scroller.current?.querySelector<HTMLElement>('[data-scroll-target="true"]');
-    el?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    const box = scroller.current;
+    const el = box?.querySelector<HTMLElement>('[data-scroll-target="true"]');
+    if (!box || !el) return;
+    const left = el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2;
+    box.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
   }, [selected, lastCardId, cards.length]);
 
   return (

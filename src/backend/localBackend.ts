@@ -55,12 +55,15 @@ export function createLocalBackend(): Backend {
         if (st) h.onState(st);
         else h.onClosed();
       };
+      const hello = () => localChannel()?.postMessage({ type: 'hello', roomId, playerId });
       const onMsg = (ev: MessageEvent) => {
         const d = ev.data as { type: string; roomId: string; playerId?: string; closed?: boolean };
         if (d.roomId !== roomId) return;
         if (d.type === 'room') void push();
         if (d.type === 'hello' && d.playerId) {
+          const isNew = !lastHello.has(d.playerId);
           lastHello.set(d.playerId, Date.now());
+          if (isNew) hello(); // neuen Tab sofort begrüßen, damit er uns nicht als „getrennt“ sieht
           emitPresence();
         }
         if (d.type === 'bye' && d.playerId) {
@@ -69,7 +72,6 @@ export function createLocalBackend(): Backend {
         }
       };
       localChannel()?.addEventListener('message', onMsg);
-      const hello = () => localChannel()?.postMessage({ type: 'hello', roomId, playerId });
       hello();
       const iv = setInterval(() => {
         hello();

@@ -29,7 +29,7 @@ Produktions-Builds (`npm run build`) enthalten den lokalen Modus und die Songbib
 ## Tests
 
 ```bash
-npm test                 # Vitest: Engine, Server-Kern, Bibliothek (54 Tests)
+npm test                 # Vitest: Engine, Server-Kern, Bibliothek (62 Tests)
 npm run typecheck
 npm run test:e2e         # Playwright gegen den lokalen Testmodus (Desktop + Mobil)
 npm run check:songs      # Konsistenz der Bibliothek; mit  -- --musicbrainz  Jahre gegen MusicBrainz prüfen
@@ -85,7 +85,7 @@ Browser (React)                     Supabase
 * **Öffentlich vs. privat:** `rooms.state` enthält nur Aufgedecktes (Zeitstrahlen, Ergebnis des letzten Zugs) und eine opake Karten-ID. Deck, aktuelle Karte und Tipp liegen in `room_secrets`. Songtitel, Interpret und Jahr einer gezogenen Karte verlassen den Server erst nach der Platzierung.
 * **Identität:** anonyme Supabase-Sitzung (JWT). Die Zuordnung Sitzung ↔ Spieler-ID liegt serverseitig; eine Spieler-ID allein berechtigt zu nichts. Raumcodes (6 Zeichen, ~1 Mrd. Kombinationen, `crypto`-Zufall) sind nur Beitrittsschlüssel – Lesen/Schreiben prüft immer die Mitgliedschaft (RLS + Server).
 * **Missbrauchsschutz:** Token-Bucket-Rate-Limits pro Sitzung (best effort pro Function-Instanz), Raumlimit pro Stunde (DB-gestützt), Beitrittsversuche gedrosselt, Aktions-Whitelist, Größenlimit.
-* **Reconnect:** Sitzung wird lokal gemerkt und beim Laden per `sync` wiederhergestellt; Heartbeat alle 10 s, Polling-Fallback alle 5 s; Aktionen werden mit derselben Aktions-ID wiederholt (idempotent). Der Server übergibt die Host-Rolle an den am längsten anwesenden verbundenen Spieler, wenn der Host 35 s keinen Heartbeat sendet, und überspringt Züge getrennter Spieler.
+* **Reconnect:** Sitzung wird lokal gemerkt und beim Laden per `sync` wiederhergestellt; Heartbeat alle 10 s, Polling-Fallback alle 5 s; Aktionen werden mit derselben Aktions-ID wiederholt (idempotent). Der Server übergibt die Host-Rolle an den am längsten anwesenden verbundenen Spieler, wenn der Host 2 Minuten keinen Heartbeat sendet (großzügig, weil Mobilbrowser im Hintergrund pausieren), und überspringt Züge getrennter Spieler.
 
 ## Spielregeln und Abweichungen
 

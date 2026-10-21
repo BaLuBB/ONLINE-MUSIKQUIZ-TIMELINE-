@@ -231,7 +231,7 @@ const ROWS: Row[] = [
   ['Ideal', 'Blaue Augen', 1980, 'ndw deutschpop'],
   ['Spider Murphy Gang', 'Skandal im Sperrbezirk', 1981, 'ndw rock deutschpop'],
   ['Markus', 'Ich will Spaß', 1982, 'ndw partyhits', { aliases: ['Ich will Spass'] }],
-  ['Trio', 'Da Da Da', 1982, 'ndw pop one-hit-wonder', { aliases: ['Da Da Da (ich lieb dich nicht du liebst mich nicht)', 'Da Da Da ich lieb dich nicht du liebst mich nicht'] }],
+  ['Trio', 'Da Da Da', 1982, 'ndw pop one-hit-wonder', { review: 'Album 1981, Single 1982 – Jahr prüfen', aliases: ['Da Da Da (ich lieb dich nicht du liebst mich nicht)', 'Da Da Da ich lieb dich nicht du liebst mich nicht'] }],
   ['Nena', 'Nur geträumt', 1982, 'ndw deutschpop', { aliases: ['Nur getraeumt'] }],
   ['Joachim Witt', 'Der Goldene Reiter', 1981, 'ndw', { aliases: ['Goldener Reiter', 'Der goldene Reiter'] }],
   ['Extrabreit', 'Hurra Hurra die Schule brennt', 1981, 'ndw punk rock', { aliases: ['Hurra, hurra, die Schule brennt'] }],
