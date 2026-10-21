@@ -53,7 +53,7 @@ export class ItunesResolver implements AudioResolver {
   private cache = new Map<string, { at: number; pb: AudioPlayback }>();
   constructor(
     private country = 'DE',
-    private fetchImpl: typeof fetch = fetch,
+    private fetchImpl: typeof fetch = (...args) => fetch(...args), // nicht „fetch“ direkt: im Browser wirft ein losgelöster Aufruf „Illegal invocation“
     private ttlMs = 6 * 3600_000,
     private timeoutMs = 4000,
   ) {}
@@ -119,6 +119,38 @@ export function pickBestMatch(song: Song, results: ItunesResult[]): ItunesResult
     if (!best || score > best.score) best = { r, score };
   }
   return best?.r ?? null;
+}
+
+/**
+ * Versucht den Hauptanbieter und fällt bei Ausfall auf den Ersatz zurück. Nach `maxFailures`
+ * Ausfällen in Folge (z. B. Netzwerk blockiert) wird der Hauptanbieter nicht mehr befragt,
+ * damit das Spiel nicht bei jeder Karte auf Zeitüberschreitungen wartet.
+ */
+export class FallbackResolver implements AudioResolver {
+  id: string;
+  private failures = 0;
+  constructor(
+    private primary: AudioResolver,
+    private fallback: AudioResolver,
+    private maxFailures = 3,
+  ) {
+    this.id = `${primary.id}+${fallback.id}`;
+  }
+
+  async resolve(song: Song): Promise<AudioPlayback> {
+    if (this.failures < this.maxFailures) {
+      const pb = await this.primary.resolve(song);
+      if (pb.kind !== 'none') {
+        this.failures = 0;
+        return pb;
+      }
+      // „Keine Vorschau gefunden“ ist ein Songproblem, kein Ausfall; nur Erreichbarkeit zählt.
+      if (/nicht erreichbar|antwortet mit/.test(pb.reason)) this.failures++;
+      else this.failures = 0;
+      if (this.failures < this.maxFailures) return pb;
+    }
+    return this.fallback.resolve(song);
+  }
 }
 
 export function createResolver(opts: { provider?: string; country?: string; fetchImpl?: typeof fetch } = {}): AudioResolver {

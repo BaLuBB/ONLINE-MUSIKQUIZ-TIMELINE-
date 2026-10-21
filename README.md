@@ -22,7 +22,7 @@ npm install
 npm run dev          # http://localhost:5173
 ```
 
-Ohne Supabase-Konfiguration startet der **lokale Testmodus** (gelbes Badge „Lokaler Testmodus“). Räume liegen im `localStorage`; jeder Browser-Tab ist ein eigener Spieler. Öffne zwei Tabs, erstelle im ersten ein Spiel und tritt im zweiten über den Einladungslink bei. Die Töne sind synthetische Demo-Töne. Der Modus ist nicht manipulationssicher (das Geheimnis liegt im selben Browser) und kein Online-Spiel.
+Ohne Supabase-Konfiguration startet der **lokale Testmodus** (gelbes Badge „Lokaler Testmodus“). Räume liegen im `localStorage`; jeder Browser-Tab ist ein eigener Spieler. Öffne zwei Tabs, erstelle im ersten ein Spiel und tritt im zweiten über den Einladungslink bei. Die Töne sind echte 30-s-Vorschauen über die iTunes Search API (direkt im Browser abgefragt), mit automatischem Rückfall auf synthetische Demo-Töne, falls kein Treffer oder kein Netzwerk; `VITE_LOCAL_AUDIO=demo` erzwingt nur Demo-Töne. Der Modus ist nicht manipulationssicher (das Geheimnis liegt im selben Browser) und kein Online-Spiel.
 
 Produktions-Builds (`npm run build`) enthalten den lokalen Modus und die Songbibliothek **nicht**; ohne Supabase-Konfiguration zeigen sie einen Hinweis „Backend nicht konfiguriert“. (`VITE_ENABLE_LOCAL_MODE=true` baut ihn bewusst ein.)
 

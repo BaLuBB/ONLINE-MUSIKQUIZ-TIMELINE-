@@ -538,3 +538,20 @@ describe('Musikbibliothek', () => {
     expect(st.pool.size).toBeGreaterThan(30);
   });
 });
+
+describe('Audio-Rückfall', () => {
+  it('wechselt nach wiederholtem Ausfall dauerhaft auf den Ersatzanbieter, behandelt „keine Vorschau“ aber als Songproblem', async () => {
+    const { FallbackResolver, DemoResolver } = await import('@engine/audio.ts');
+    let calls = 0;
+    const flaky = { id: 'x', resolve: async () => (calls++, { kind: 'none' as const, provider: 'x', reason: 'Audioquelle nicht erreichbar.' }) };
+    const r = new FallbackResolver(flaky, new DemoResolver(), 2);
+    const song = testSongs(1)[0];
+    expect((await r.resolve(song)).kind).toBe('none'); // 1. Ausfall: noch Hauptanbieter
+    expect((await r.resolve(song)).kind).toBe('synth'); // 2. Ausfall: Rückfall
+    expect((await r.resolve(song)).kind).toBe('synth');
+    expect(calls).toBe(2); // danach keine Anfragen mehr
+    const missing = { id: 'y', resolve: async () => ({ kind: 'none' as const, provider: 'y', reason: 'Keine Vorschau gefunden.' }) };
+    const r2 = new FallbackResolver(missing, new DemoResolver(), 2);
+    for (let i = 0; i < 5; i++) expect((await r2.resolve(song)).kind).toBe('none');
+  });
+});
