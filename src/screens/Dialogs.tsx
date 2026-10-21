@@ -17,7 +17,7 @@ function errorField(e: GameError | null): { name?: string; code?: string; genera
 
 export function CreateDialog() {
   const { dialog, close } = useUI();
-  const { createRoom } = useGame();
+  const { createRoom, backend } = useGame();
   const open = dialog === 'create';
   const [name, setName] = useState(savedName());
   const [settings, setSettings] = useState<Settings>(defaultSettings());
@@ -56,6 +56,12 @@ export function CreateDialog() {
           <p className="form-error" role="alert">
             {fe.general}
           </p>
+        )}
+        {err && backend?.diagnostics && (
+          <details className="diag">
+            <summary>Technische Details (für die Fehlersuche)</summary>
+            <pre>{backend.diagnostics().join('\n') || 'Keine Einträge.'}</pre>
+          </details>
         )}
         <div className="dialog-actions">
           <Button onClick={close}>Abbrechen</Button>
