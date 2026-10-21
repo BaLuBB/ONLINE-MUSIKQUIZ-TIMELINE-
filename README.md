@@ -14,7 +14,7 @@ Ein Multiplayer-Musikquiz nach dem Prinzip von Hitster: Songs erkennen, die verd
 | Lokaler Testmodus (nur ein Browser, mehrere Tabs) | ✅ funktioniert; kein Mehrgeräte-Spiel |
 | Echter Online-Betrieb über Supabase (Edge Function, Realtime, Anonymous Auth) | ⚠️ vollständig implementiert, aber **nicht gegen ein echtes Supabase-Projekt getestet** (in der Entwicklungsumgebung gab es keinen Zugang). Erst nach der Einrichtung unten ist es ein Online-Spiel. |
 | Audio über iTunes-Vorschauen | ⚠️ implementiert, **nicht live getestet** (Netzwerk der Entwicklungsumgebung gesperrt). Die Treffer-Zuordnung ist unit-getestet, die echte Trefferquote ist unbekannt. Ohne Treffer fällt das Spiel auf einen klar gekennzeichneten Demo-Ton zurück. |
-| Musikbibliothek (290 Songs) | ⚠️ Jahre stammen aus der Startliste bzw. Wissen und sind **nicht extern verifiziert**; unsichere Einträge tragen `review` (siehe „Musikbibliothek“) |
+| Musikbibliothek (1477 Songs) | ⚠️ Jahre stammen aus der Startliste bzw. Wissen und sind **nicht extern verifiziert**; unsichere Einträge tragen `review` (siehe „Musikbibliothek“) |
 
 ## Spielen auf mehreren Geräten ohne eigenes Backend: Direktverbindung (P2P)
 

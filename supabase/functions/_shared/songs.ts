@@ -11,10 +11,13 @@
 // Jahrzehnt-Genres (70er, 80er, …) werden automatisch aus dem Jahr ergänzt.
 
 import { decadeGenre, GENRE_IDS } from './genres.ts';
+import { EIGHTIES_NINETIES_ROWS } from './songs.eighties-nineties.ts';
+import { OLDIES_ROWS } from './songs.oldies.ts';
+import { RECENT_ROWS } from './songs.recent.ts';
 import type { Song } from './types.ts';
 
-type Extra = { aliases?: string[]; review?: string };
-type Row = [artist: string, title: string, year: number, genres: string, extra?: Extra];
+export type Extra = { aliases?: string[]; review?: string };
+export type Row = [artist: string, title: string, year: number, genres: string, extra?: Extra];
 
 const ROWS: Row[] = [
   // ───── Startliste (Nr. 1–120, Duplikat Nr. 46 entfernt) ─────
@@ -358,7 +361,7 @@ function toSong([artist, title, year, genres, extra]: Row): Song {
 export const SONGS: Song[] = (() => {
   const seen = new Set<string>();
   const out: Song[] = [];
-  for (const row of ROWS) {
+  for (const row of [...ROWS, ...OLDIES_ROWS, ...EIGHTIES_NINETIES_ROWS, ...RECENT_ROWS]) {
     const song = toSong(row);
     if (seen.has(song.id)) continue;
     seen.add(song.id);

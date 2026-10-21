@@ -197,7 +197,7 @@
 .timeline-wrap::before, .timeline-wrap::after { content: ''; position: absolute; top: 0; bottom: 0; width: 24px; z-index: 2; pointer-events: none; }
 .timeline-wrap::before { left: 0; background: linear-gradient(to right, var(--bg), transparent); }
 .timeline-wrap::after { right: 0; background: linear-gradient(to left, var(--bg), transparent); }
-.timeline-scroll { position: relative; display: flex; align-items: center; gap: 0; overflow-x: auto; padding: var(--space-5) var(--space-5) var(--space-6); scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.timeline-scroll { position: relative; display: flex; align-items: center; justify-content: safe center; gap: 0; overflow-x: auto; padding: var(--space-5) var(--space-5) var(--space-6); scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
 .timeline-track { position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--line-strong); transform: translateY(-1px); min-width: 100%; width: max-content; pointer-events: none; }
 .tl-item { position: relative; scroll-snap-align: center; flex: none; padding: 0 2px; }
 .slot-gap { flex: none; width: 18px; }
