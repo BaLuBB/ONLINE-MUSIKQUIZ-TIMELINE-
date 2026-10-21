@@ -169,6 +169,7 @@ test.describe('Spiel', () => {
     await host.getByRole('button', { name: 'Spiel starten' }).click();
     await expect(host.getByRole('button', { name: 'Karte ziehen' })).toBeVisible();
     await host.getByRole('button', { name: 'Karte ziehen' }).click();
+    await expect(host.locator('.audio-panel')).toBeVisible(); // Karte ist erst danach serverseitig gezogen
     const song = byId.get((await currentSongId(host))!)!;
     const start = Number(await host.locator('.timeline-scroll .card-year').first().innerText());
     // Bewusst falsch: Karte vor die Startkarte, wenn sie neuer ist – sonst dahinter
