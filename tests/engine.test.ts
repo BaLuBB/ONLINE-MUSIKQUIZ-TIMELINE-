@@ -65,10 +65,29 @@ describe('Titelprüfung', () => {
     expect(isTitleCorrect('a', { title: 'A', aliases: [] })).toBe(false);
     expect(isTitleCorrect('Bohemian', { title: 'Bohemian Rhapsody' })).toBe(false);
   });
-  it('toleriert einen Tippfehler nur bei langen Titeln', () => {
-    expect(isTitleCorrect('Bohemian Rhapsodi', { title: 'Bohemian Rhapsody' })).toBe(true);
-    expect(isTitleCorrect('Bohemian Rhapsodiee', { title: 'Bohemian Rhapsody' })).toBe(false);
-    expect(isTitleCorrect('Zombi', { title: 'Zombie' })).toBe(false);
+  it('toleriert leichte Rechtschreibfehler (Buchstabe falsch, fehlend, zu viel, vertauscht)', () => {
+    const rhapsody = { title: 'Bohemian Rhapsody' };
+    expect(isTitleCorrect('Bohemian Rhapsodi', rhapsody)).toBe(true);
+    expect(isTitleCorrect('Bohemain Rhapsody', rhapsody)).toBe(true); // Buchstabendreher
+    expect(isTitleCorrect('Bohemian Rapsody', rhapsody)).toBe(true); // Buchstabe fehlt
+    expect(isTitleCorrect('Bohemian Rhapsodyy', rhapsody)).toBe(true); // Buchstabe zu viel
+    expect(isTitleCorrect('Zombi', { title: 'Zombie' })).toBe(true);
+    expect(isTitleCorrect('smels like teen spirt', { title: 'Smells Like Teen Spirit' })).toBe(true);
+    expect(isTitleCorrect('Dancin Queen', { title: 'Dancing Queen' })).toBe(true);
+  });
+  it('lehnt falsche, fehlende oder zu stark verschriebene Wörter ab', () => {
+    const rhapsody = { title: 'Bohemian Rhapsody' };
+    expect(isTitleCorrect('Bohemian Rapture', rhapsody)).toBe(false); // anderes Wort
+    expect(isTitleCorrect('Bohemian Rhapsodiee', rhapsody)).toBe(false); // zu viele Fehler im Wort
+    expect(isTitleCorrect('Romantic Rhapsody', rhapsody)).toBe(false);
+    expect(isTitleCorrect('Love Me', { title: 'Live Me' })).toBe(false); // kurze Wörter müssen stimmen
+    expect(isTitleCorrect('Rock', { title: 'Rack' })).toBe(false);
+    expect(isTitleCorrect('Smells Like Spirit', { title: 'Smells Like Teen Spirit' })).toBe(false); // Wort fehlt
+    expect(isTitleCorrect('Take On', { title: 'Take On Me' })).toBe(false);
+  });
+  it('erlaubt vergessene oder zusätzliche Leerzeichen bei langen Titeln', () => {
+    expect(isTitleCorrect('Heya', { title: 'Hey Ya' })).toBe(false); // zu kurz
+    expect(isTitleCorrect('Thunder struck', { title: 'Thunderstruck' })).toBe(true);
   });
   it('versteht deutsche Umlaut-Schreibweisen', () => {
     expect(isTitleCorrect('Chore', { title: 'Chöre' })).toBe(true);
