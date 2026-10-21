@@ -132,6 +132,12 @@ export function JoinDialog() {
             {fe.general}
           </p>
         )}
+        {err && backend?.diagnostics && (
+          <details className="diag">
+            <summary>Technische Details (für die Fehlersuche)</summary>
+            <pre>{backend.diagnostics().join('\n') || 'Keine Einträge.'}</pre>
+          </details>
+        )}
         <div className="dialog-actions">
           <Button onClick={close}>Abbrechen</Button>
           <Button type="submit" variant="primary" loading={loading} disabled={!name.trim() || normalizeRoomCode(code).length < 4}>

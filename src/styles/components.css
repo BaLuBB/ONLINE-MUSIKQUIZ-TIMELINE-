@@ -336,3 +336,6 @@ code { font-family: var(--font-mono); font-size: 0.9em; background: var(--surfac
 .feed-guess { font-size: var(--text-xs); color: var(--ink-2); overflow-wrap: anywhere; }
 .feed-guess .ok { color: var(--success); font-weight: 650; }
 .feed-guess .bad { color: var(--danger); font-weight: 650; }
+
+.diag summary { cursor: pointer; color: var(--accent); font-size: var(--text-sm); font-weight: 560; }
+.diag pre { margin: var(--space-2) 0 0; padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-2); font-family: var(--font-mono); font-size: var(--text-xs); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 160px; overflow: auto; }

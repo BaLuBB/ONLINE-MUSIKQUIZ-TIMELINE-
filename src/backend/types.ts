@@ -19,6 +19,8 @@ export interface Backend {
   /** Liest den aktuellen Zustand (Polling/Reconnect). */
   fetchState(roomId: string): Promise<PublicState | null>;
   subscribe(roomId: string, playerId: string, handlers: SubscribeHandlers): () => void;
+  /** Optional: Verbindungsprotokoll für die Fehlersuche (P2P). */
+  diagnostics?(): string[];
 }
 
 export const networkError = (message = 'Keine Verbindung zum Server.'): { ok: false; error: GameError } => ({

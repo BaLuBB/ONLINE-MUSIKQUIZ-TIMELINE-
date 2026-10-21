@@ -137,3 +137,16 @@ test('Host lädt die Seite mitten im Spiel neu: Raum und Mitspieler bleiben erha
   await expect(guest.locator('.pcard')).toHaveCount(2, { timeout: 40_000 });
   await expect(guest.locator('.stage')).toBeVisible();
 });
+
+test('blockiert das Gerät den Signalserver, nennt die Fehlermeldung die Ursache und zeigt Details', async ({ browser }) => {
+  const page = await (await browser.newContext()).newPage();
+  await page.routeWebSocket(/peerjs/, (ws) => ws.close()); // simuliert Werbeblocker/Firmennetz
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Spiel beitreten' }).click();
+  await page.getByLabel('Dein Name').fill('Ben');
+  await page.getByLabel('Raumcode').fill('ABC234');
+  await page.getByRole('button', { name: 'Beitreten', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Signalserver', { timeout: 30_000 });
+  await page.getByText('Technische Details').click();
+  await expect(page.locator('.diag pre')).toContainText('Signalserver', { timeout: 5000 });
+});
