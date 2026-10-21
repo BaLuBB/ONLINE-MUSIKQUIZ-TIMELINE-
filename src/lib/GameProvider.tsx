@@ -36,7 +36,8 @@ interface GameContextValue {
   audioReady: boolean;
   notify(message: string, tone?: Toast['tone']): void;
   dismissToast(id: number): void;
-  createRoom(name: string, settings: Partial<Settings>): Promise<GameError | null>;
+  /** `speakerHere`: Party-Modus – dieses Gerät wird sofort zum Lautsprecher der Runde. */
+  createRoom(name: string, settings: Partial<Settings>, speakerHere?: boolean): Promise<GameError | null>;
   joinRoom(code: string, name: string): Promise<GameError | null>;
   act(action: ClientAction): Promise<ServerResponse>;
   leave(): Promise<void>;
@@ -321,14 +322,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
   );
 
   const createRoom = useCallback(
-    async (name: string, settings: Partial<Settings>): Promise<GameError | null> => {
+    async (name: string, settings: Partial<Settings>, speakerHere = false): Promise<GameError | null> => {
       if (!backend) return { code: 'config', message: 'Kein Backend konfiguriert.' };
-      const res = await backend.request({ type: 'create', name, settings });
+      let res = await backend.request({ type: 'create', name, settings });
       if (!res.ok) return res.error;
+      if (speakerHere) {
+        // Erst nach dem Erstellen gibt es eine Spieler-ID für dieses Gerät.
+        const set = await backend.request({
+          type: 'action',
+          roomId: res.roomId,
+          action: { type: 'updateSettings', patch: { speakerId: res.playerId } },
+        });
+        if (set.ok && set.state) res = { ...res, state: set.state };
+        else notify('Die Lobby wurde erstellt, aber das Gerät konnte nicht als Lautsprecher gesetzt werden. Wähle es in der Lobby.', 'error');
+      }
       enter(res);
       return null;
     },
-    [backend, enter],
+    [backend, enter, notify],
   );
 
   const joinRoom = useCallback(

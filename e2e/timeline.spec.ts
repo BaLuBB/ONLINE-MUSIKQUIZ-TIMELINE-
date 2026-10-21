@@ -59,6 +59,28 @@ test.describe('Lobby', () => {
     await expect(guest.locator('.chip', { hasText: 'Jazz' })).toBeVisible({ timeout: 5000 });
   });
 
+  test('Party-Modus: Gerät beim Erstellen als Box wählen, Gast sieht den Lautsprecher', async ({ context }) => {
+    const host = await context.newPage();
+    await host.goto('/');
+    await host.getByRole('button', { name: 'Spiel erstellen' }).click();
+    await host.getByLabel('Dein Name').fill('Anna');
+    await host.getByRole('switch', { name: /Dieses Gerät ist die Box/ }).click();
+    await host.getByRole('button', { name: 'Lobby erstellen' }).click();
+    await host.waitForSelector('.code-display');
+    await expect(host.getByRole('radio', { name: /Anna \(du\)/ })).toHaveAttribute('aria-checked', 'true');
+    const code = (await host.locator('.code-display').innerText()).replace(/\s/g, '');
+
+    const guest = await context.newPage();
+    await join(guest, code, 'Ben');
+    await expect(guest.getByRole('radio', { name: /Anna/ })).toHaveAttribute('aria-checked', 'true', { timeout: 5000 });
+    await expect(guest.getByRole('radio', { name: /Anna/ })).toBeDisabled(); // nur der Host wählt
+
+    // Host wechselt auf „Jedes Gerät“
+    await host.getByRole('radio', { name: /Jedes Gerät/ }).click();
+    await expect(host.getByRole('radio', { name: /Jedes Gerät/ })).toHaveAttribute('aria-checked', 'true');
+    await expect(guest.getByRole('radio', { name: /Jedes Gerät/ })).toHaveAttribute('aria-checked', 'true', { timeout: 5000 });
+  });
+
   test('ungültiger Code zeigt eine verständliche Fehlermeldung', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Spiel beitreten' }).click();
