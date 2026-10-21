@@ -9,11 +9,13 @@ import { FaceDownCard, FlipCard } from '../components/SongCard.tsx';
 import { ThemeToggle } from '../components/ThemeToggle.tsx';
 import { Timeline } from '../components/Timeline.tsx';
 import { Button, Chip, Dialog, Field, IconButton } from '../components/ui.tsx';
+import { TurnFeed } from '../components/TurnFeed.tsx';
+import { colorVar } from '../lib/colors.ts';
 import { useGame } from '../lib/GameProvider.tsx';
 import { formatCode } from '../lib/format.ts';
 
 export function Game() {
-  const { state, me, session, presence, isMyTurn, isHost, act, busy, audio, leave } = useGame();
+  const { state, me, session, presence, isMyTurn, isHost, act, busy, audio, leave, backend } = useGame();
   const [selected, setSelected] = useState<number | null>(null);
   const [guessOpen, setGuessOpen] = useState(false);
   const [viewId, setViewId] = useState<string | null>(null);
@@ -35,6 +37,10 @@ export function Game() {
   if (!state || !me || !session) return null;
 
   const viewed = state.players.find((p) => p.id === (viewId ?? turnId)) ?? me;
+  const colorOf = (id: string | null | undefined) => {
+    const i = state.players.findIndex((p) => p.id === id);
+    return colorVar(state.players[i]?.color, i < 0 ? 0 : i);
+  };
   const phase = state.phase;
   const result = phase === 'resolving_turn' ? state.lastResult : null;
   const drawn = Boolean(cardId) && phase === 'playing';
@@ -94,7 +100,7 @@ export function Game() {
 
           <div className="stage-card">
             {phase === 'resolving_turn' && result ? (
-              <FlipCard card={result.card} revealed tone={result.correct ? 'correct' : 'wrong'} />
+              <FlipCard card={result.card} revealed tone={result.correct ? 'correct' : 'wrong'} color={colorVar(result.playerColor)} />
             ) : drawn ? (
               <div
                 className={`card-drag${canPlace ? ' can-drag' : ''}`}
@@ -171,6 +177,7 @@ export function Game() {
             lastTone="correct"
             startCardId={viewed.timeline[0]?.cardId}
             ownerName={viewed.name}
+            ownerColor={colorOf(viewed.id)}
           />
           {canPlace && viewed.id !== me.id && (
             <p className="banner banner-warn center">
@@ -182,12 +189,17 @@ export function Game() {
           )}
         </section>
         {canPlace && <div className="action-mobile">{actionBar}</div>}
+        <TurnFeed recent={state.recent ?? []} titleBonus={state.settings.titleBonus} />
       </main>
 
       <GuessDialog open={guessOpen} onClose={() => setGuessOpen(false)} />
 
       <Dialog open={confirmLeave} onClose={() => setConfirmLeave(false)} title="Spiel verlassen?">
-        <p className="muted">Wenn du gehst, wirst du aus der laufenden Partie entfernt. Mit dem Raumcode kannst du nicht wieder einsteigen.</p>
+        <p className="muted">
+          {isHost && backend?.mode === 'p2p'
+            ? 'Du bist der Host: Wenn du gehst, endet das Spiel für alle Mitspieler.'
+            : 'Wenn du gehst, wirst du aus der laufenden Partie entfernt. Mit dem Raumcode kannst du nicht wieder einsteigen.'}
+        </p>
         <div className="dialog-actions">
           <Button onClick={() => setConfirmLeave(false)}>Weiterspielen</Button>
           <Button variant="danger" onClick={() => void leave()}>
@@ -242,11 +254,14 @@ function ResultPanel() {
   const card: RevealedCard = r.card;
 
   return (
-    <div className={`result ${r.correct ? 'result-ok' : 'result-bad'}`} role="status">
+    <div className={`result ${r.correct ? 'result-ok' : 'result-bad'}`} role="status" style={{ '--pc': colorVar(r.playerColor) } as React.CSSProperties}>
       <div className="result-head">
         {r.correct ? <Check size={20} /> : <X size={20} />}
         <strong>{r.correct ? (mine ? 'Richtig platziert!' : `${who} lag richtig`) : mine ? 'Leider falsch platziert' : `${who} lag daneben`}</strong>
       </div>
+      <p className="result-who">
+        <span className="swatch" aria-hidden /> {mine ? 'Dein Zug' : `Zug von ${who}`}
+      </p>
       <p className="result-song">
         {card.title} – {card.artist} · <b>{card.year}</b>
       </p>
@@ -254,7 +269,7 @@ function ResultPanel() {
         <li className={r.correct ? 'gain' : ''}>{r.correct ? '+1 Karte' : 'Karte abgelegt'}</li>
         {state.settings.titleBonus && (
           <li className={r.titleCorrect ? 'gain' : ''}>
-            {r.guess === null ? 'Kein Titel getippt' : r.titleCorrect ? '+1 Titel-Bonus' : `Titel „${r.guess}“ war nicht richtig`}
+            {r.guess === null ? 'Kein Titel getippt' : r.titleCorrect ? `Tipp „${r.guess}“ ✓ +1 Titel-Bonus` : `Tipp „${r.guess}“ war nicht richtig`}
           </li>
         )}
         <li>Gesamt: {r.totalPoints} Pkt.</li>

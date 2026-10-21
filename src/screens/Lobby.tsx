@@ -89,6 +89,11 @@ export function Lobby() {
           <h1>Warte auf Mitspieler</h1>
         </div>
 
+        {backend?.mode === 'p2p' && isHost && (
+          <p className="banner banner-warn" role="note">
+            Du bist der Host und zugleich der „Server“: Lass diese Seite geöffnet und das Gerät aktiv, solange gespielt wird. Verlässt du sie, endet das Spiel für alle.
+          </p>
+        )}
         {backend?.mode === 'local' && (
           <p className="banner banner-warn" role="note">
             Lokaler Testmodus: Mitspieler müssen im <strong>selben Browser</strong> einen neuen Tab öffnen und den Code oder Link verwenden. Für Spieler auf anderen Geräten braucht es das Online-Backend (siehe README).

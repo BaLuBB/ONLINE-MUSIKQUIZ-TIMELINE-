@@ -10,8 +10,10 @@ export default defineConfig(({ mode }) => {
   // Der lokale Testmodus (inkl. kompletter Songbibliothek) wird nur in Dev-Builds oder mit
   // VITE_ENABLE_LOCAL_MODE=true eingebaut. Produktions-Builds enthalten die Bibliothek nie.
   const localMode = mode !== 'production' || env.VITE_ENABLE_LOCAL_MODE === 'true';
+  // Direktverbindungs-Modus (Geräte-zu-Gerät ohne Backend): im Dev-Server oder mit VITE_ENABLE_P2P=true.
+  const p2pMode = mode !== 'production' || env.VITE_ENABLE_P2P === 'true';
   return {
-  define: { __LOCAL_MODE__: JSON.stringify(localMode) },
+  define: { __LOCAL_MODE__: JSON.stringify(localMode), __P2P_MODE__: JSON.stringify(p2pMode) },
   plugins: [react()],
   resolve: {
     alias: { '@engine': fileURLToPath(new URL('./supabase/functions/_shared', import.meta.url)) },

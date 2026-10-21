@@ -74,10 +74,10 @@
 .stage { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-3); padding: var(--space-4) var(--gutter) 0; }
 .stage h1 { font-size: var(--text-3xl); }
 .turn-me { color: var(--accent); }
-.stage-card { min-height: 200px; display: grid; place-items: center; padding: var(--space-3) 0; }
-@media (max-width: 520px) { .stage-card { min-height: 170px; } }
-.deck-stack { position: relative; width: 136px; height: 184px; }
-@media (max-width: 520px) { .deck-stack { width: 112px; height: 156px; } }
+.stage-card { min-height: 220px; display: grid; place-items: center; padding: var(--space-3) 0; }
+@media (max-width: 520px) { .stage-card { min-height: 190px; } }
+.deck-stack { position: relative; width: 136px; height: 204px; }
+@media (max-width: 520px) { .deck-stack { width: 116px; height: 176px; } }
 .deck-stack .song-card { position: absolute; inset: 0; }
 .deck-stack .d3 { transform: translate(-8px, 8px) rotate(-4deg); opacity: 0.55; }
 .deck-stack .d2 { transform: translate(4px, 4px) rotate(2.5deg); opacity: 0.8; }

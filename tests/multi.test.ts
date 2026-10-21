@@ -148,3 +148,46 @@ describe('3 Spieler: Verlassen und Zugfolge', () => {
     expect(next.turnOrder).toHaveLength(2);
   });
 });
+
+describe('Spielerfarben und Zugverlauf', () => {
+  it('vergibt stabile, eindeutige Farben; freie Farben werden wiederverwendet', async () => {
+    const h = makeHarness();
+    const r = await lobby3(h);
+    let st = okState(await r.a.sync(r.roomId));
+    expect(st.players.map((p) => p.color)).toEqual([0, 1, 2]);
+    await r.b.act(r.roomId, { type: 'leave' });
+    st = okState(await r.a.sync(r.roomId));
+    expect(st.players.map((p) => p.color)).toEqual([0, 2]); // Cleo behält ihre Farbe
+    const d = h.client('ud');
+    const j = await d.join(st.code, 'Dora');
+    expect(okState(j).players.find((p) => p.name === 'Dora')!.color).toBe(1); // freie Farbe
+  });
+
+  it('protokolliert Züge öffentlich (Name, Farbe, Tipp, Ergebnis) und leert den Verlauf beim Neustart', async () => {
+    const h = makeHarness();
+    const r = await lobby3(h);
+    okState(await r.a.act(r.roomId, { type: 'start' }));
+    // A: falscher Tipp, korrekt platziert; B: richtiger Tipp, falsch platziert
+    await r.a.act(r.roomId, { type: 'draw' });
+    await r.a.act(r.roomId, { type: 'guess', text: 'ganz falsch' });
+    const cur = h.secretOf(r.roomId).current!;
+    const song = testSongs(60).find((s) => s.id === cur.songId)!;
+    const me = okState(await r.a.sync(r.roomId)).players[0];
+    await r.a.act(r.roomId, { type: 'place', position: posFor(me.timeline, song.releaseYear) });
+    okState(await r.a.act(r.roomId, { type: 'nextTurn' }));
+    await r.b.act(r.roomId, { type: 'draw' });
+    const cur2 = h.secretOf(r.roomId).current!;
+    const song2 = testSongs(60).find((s) => s.id === cur2.songId)!;
+    await r.b.act(r.roomId, { type: 'guess', text: song2.title });
+    await r.b.act(r.roomId, { type: 'place', position: 0 });
+    // Jeder Mitspieler sieht den Verlauf – auch C
+    const st = okState(await r.c.sync(r.roomId));
+    expect(st.recent.map((x) => x.playerName)).toEqual(['Anna', 'Ben']);
+    expect(st.recent.map((x) => x.playerColor)).toEqual([0, 1]);
+    expect(st.recent[0].correct).toBe(true);
+    expect(st.recent[0].guess).toBe('ganz falsch');
+    expect(st.recent[0].titleCorrect).toBe(false);
+    expect(st.recent[1].titleCorrect).toBe(true);
+    expect(st.recent[1].card.title).toBe(song2.title);
+  });
+});

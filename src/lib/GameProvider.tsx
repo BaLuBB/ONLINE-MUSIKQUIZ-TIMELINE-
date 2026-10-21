@@ -34,7 +34,6 @@ interface GameContextValue {
   audioReady: boolean;
   notify(message: string, tone?: Toast['tone']): void;
   dismissToast(id: number): void;
-  switchToLocalMode(): void;
   createRoom(name: string, settings: Partial<Settings>): Promise<GameError | null>;
   joinRoom(code: string, name: string): Promise<GameError | null>;
   act(action: ClientAction): Promise<ServerResponse>;
@@ -50,10 +49,9 @@ export function useGame(): GameContextValue {
 }
 
 const sessionKey = (mode: string) => `timeline.session.${mode}`;
-const FORCE_LOCAL_KEY = 'timeline.forceLocal';
 
-// Lokaler Testmodus: jeder Tab ist ein eigener Spieler → Sitzung pro Tab (sessionStorage).
-const sessionStore = (mode: string): Storage => (mode === 'local' ? sessionStorage : localStorage);
+// Lokaler/P2P-Modus: jeder Tab ist ein eigener Spieler → Sitzung pro Tab (sessionStorage).
+const sessionStore = (mode: string): Storage => (mode === 'online' ? localStorage : sessionStorage);
 
 function loadSession(mode: string): RoomSession | null {
   try {
@@ -75,14 +73,16 @@ function saveSession(mode: string, s: RoomSession | null): void {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [selection, setSelection] = useState<BackendSelection>(() => {
-    let forceLocal = false;
+  const [selection] = useState<BackendSelection>(() => {
+    // ?mode=p2p|local erzwingt einen Modus (zum Testen; nur wenn in den Build eingebaut)
+    let force: 'local' | 'p2p' | undefined;
     try {
-      forceLocal = sessionStorage.getItem(FORCE_LOCAL_KEY) === '1';
+      const m = new URLSearchParams(window.location.search).get('mode');
+      if (m === 'local' || m === 'p2p') force = m;
     } catch {
       /* ignorieren */
     }
-    return selectBackend(forceLocal);
+    return selectBackend(force);
   });
   const backend = selection.kind === 'ready' ? selection.backend : null;
 
@@ -334,15 +334,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     clearSession();
   }, [backend, session, clearSession]);
 
-  const switchToLocalMode = useCallback(() => {
-    try {
-      sessionStorage.setItem(FORCE_LOCAL_KEY, '1');
-    } catch {
-      /* ignorieren */
-    }
-    setSelection(selectBackend(true));
-  }, []);
-
   const value: GameContextValue = {
     selection,
     backend,
@@ -360,7 +351,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     audioReady,
     notify,
     dismissToast,
-    switchToLocalMode,
     createRoom,
     joinRoom,
     act,

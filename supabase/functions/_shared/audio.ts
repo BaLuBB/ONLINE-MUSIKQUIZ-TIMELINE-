@@ -33,10 +33,11 @@ export class NoAudioResolver implements AudioResolver {
   }
 }
 
-interface ItunesResult {
+export interface ItunesResult {
   trackName?: string;
   artistName?: string;
   previewUrl?: string;
+  artworkUrl100?: string;
   trackId?: number;
   kind?: string;
 }
@@ -99,12 +100,12 @@ export class ItunesResolver implements AudioResolver {
   }
 }
 
-export function pickBestMatch(song: Song, results: ItunesResult[]): ItunesResult | null {
+export function pickBestMatch(song: Pick<Song, 'title' | 'artist'>, results: ItunesResult[], needPreview = true): ItunesResult | null {
   const wantTitle = normalizeText(stripFeat(song.title).replace(/\s*\([^)]*\)\s*/g, ' '));
   const wantArtist = normalizeText(stripFeat(song.artist).split(/&|,| and /)[0] ?? '');
   let best: { r: ItunesResult; score: number } | null = null;
   for (const r of results) {
-    if (!r.previewUrl || !r.trackName) continue;
+    if ((needPreview && !r.previewUrl) || !r.trackName) continue;
     const t = normalizeText(r.trackName.replace(/\s*\([^)]*\)\s*/g, ' '));
     const a = normalizeText(r.artistName ?? '');
     let score = 0;

@@ -39,7 +39,11 @@ export function Home() {
           </Button>
         </div>
         <p className="hero-note">
-          {local ? (
+          {backend?.mode === 'p2p' ? (
+            <>
+              <Users size={15} aria-hidden /> Mit Freunden auf mehreren Geräten spielen – der Host erstellt das Spiel, alle anderen treten mit dem Code bei.
+            </>
+          ) : local ? (
             <>
               <FlaskConical size={15} aria-hidden /> Lokaler Testmodus – Spielräume gelten nur in diesem Browser (Tabs).
             </>
