@@ -74,6 +74,14 @@ Abgedeckt u. a.: Raum erstellen, Code-Format, Beitritt mit zweitem Client, ungü
 6. **Frontend konfigurieren**: `.env` nach `.env.example` anlegen: `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` (Project Settings → API; der *anon/publishable* Key, **nie** der service_role-Key).
 7. **Prüfen**: `npm run dev`, zwei Geräte/Browser, Spiel erstellen, mit dem Code beitreten. Das Badge „Lokaler Testmodus“ darf nicht mehr erscheinen.
 
+### Ohne Kommandozeile: per GitHub-Workflow einrichten
+
+1. Auf [supabase.com](https://supabase.com) ein kostenloses Projekt anlegen (Datenbank-Passwort notieren) und unter *Authentication → Sign In / Providers* **Allow anonymous sign-ins** einschalten.
+2. Im GitHub-Repo unter *Settings → Secrets and variables → Actions* eintragen: Secrets `SUPABASE_ACCESS_TOKEN` (supabase.com → Account → Access Tokens) und `SUPABASE_DB_PASSWORD`; Variables `SUPABASE_PROJECT_REF`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
+3. Unter *Actions* den Workflow **Supabase einrichten** starten (spielt Schema und Edge Function ein), danach **Pages** neu starten – die Seite nutzt dann das echte Online-Backend statt der Direktverbindung.
+
+(Der Workflow ist **nicht** gegen ein echtes Supabase-Projekt getestet.)
+
 ### Frontend veröffentlichen
 
 **GitHub Pages (Workflow `.github/workflows/pages.yml`):** Nach dem Merge nach `main` und einmal Settings → Pages → *Source: GitHub Actions* erscheint die Seite unter `https://<user>.github.io/<repo>/`. Ohne Repository-Variablen wird die Demo im lokalen Testmodus veröffentlicht; setzt du unter Settings → Secrets and variables → Actions → *Variables* `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY`, baut der Workflow den echten Online-Build. Die Supabase-Domain-Einstellungen (Site URL, `ALLOWED_ORIGIN`) entsprechend auf `https://<user>.github.io` setzen.

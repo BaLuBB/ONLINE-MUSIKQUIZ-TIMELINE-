@@ -70,6 +70,33 @@ function myUid(): string {
   return uid;
 }
 
+/**
+ * Standard-ICE-Server: STUN (Adressermittlung) und frei nutzbare TURN-Relays (nötig, wenn Geräte in
+ * verschiedenen Netzen hängen, z. B. WLAN ↔ Mobilfunk). Gemeinschaftsdienste ohne Verfügbarkeitszusage;
+ * eigene Server lassen sich über VITE_ICE_SERVERS eintragen.
+ */
+const DEFAULT_ICE: RTCIceServer[] = [
+  { urls: ['stun:stun.l.google.com:19302', 'stun:stun.cloudflare.com:3478'] },
+  { urls: ['turn:eu-0.turn.peerjs.com:3478', 'turn:us-0.turn.peerjs.com:3478'], username: 'peerjs', credential: 'peerjsp' },
+  {
+    urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turns:openrelay.metered.ca:443?transport=tcp'],
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+];
+
+/** Verbindungsprotokoll für die Fehlersuche (auch in der Konsole; Fehlermeldungen nennen den technischen Grund). */
+export const p2pLog: string[] = [];
+function log(msg: string): void {
+  const line = `${new Date().toISOString().slice(11, 19)} ${msg}`;
+  p2pLog.push(line);
+  if (p2pLog.length > 80) p2pLog.shift();
+  console.warn('[p2p]', msg);
+}
+
+const errType = (e: unknown): string => String((e as { type?: string })?.type ?? (e as Error)?.name ?? 'unbekannt');
+const errMsg = (e: unknown): string => String((e as Error)?.message ?? e ?? '');
+
 function peerOptions(): PeerOptions {
   const env = import.meta.env;
   const opts: PeerOptions = { debug: 0 };
@@ -79,13 +106,15 @@ function peerOptions(): PeerOptions {
     if (env.VITE_PEER_PATH) opts.path = env.VITE_PEER_PATH;
     opts.secure = env.VITE_PEER_SECURE === 'true';
   }
+  let ice: RTCIceServer[] = DEFAULT_ICE;
   if (env.VITE_ICE_SERVERS) {
     try {
-      opts.config = { iceServers: JSON.parse(env.VITE_ICE_SERVERS) };
+      ice = JSON.parse(env.VITE_ICE_SERVERS) as RTCIceServer[];
     } catch {
       /* ungültiges JSON → Standard */
     }
   }
+  opts.config = { iceServers: ice, sdpSemantics: 'unified-plan' } as RTCConfiguration;
   return opts;
 }
 
@@ -99,10 +128,12 @@ function openPeer(id?: string): Promise<Peer> {
     const peer = id ? new Peer(id, peerOptions()) : new Peer(peerOptions());
     const timer = setTimeout(() => {
       peer.destroy();
-      reject(Object.assign(new Error('Signalserver nicht erreichbar'), { type: 'timeout' }));
-    }, 12000);
+      log('Signalserver: Zeitüberschreitung beim Verbinden');
+      reject(Object.assign(new Error('Signalserver nicht erreichbar'), { type: 'signal-timeout' }));
+    }, 15000);
     const onError = (e: unknown) => {
       clearTimeout(timer);
+      log(`Signalserver-Fehler: ${errType(e)} – ${errMsg(e)}`);
       peer.destroy();
       reject(e);
     };
@@ -252,7 +283,7 @@ export function createP2PBackend(): Backend {
         const type = (e as { type?: string }).type;
         await srv.handle(uid, { type: 'action', roomId: res.roomId, action: { type: 'leave' } });
         if (type !== 'unavailable-id') {
-          return networkError('Das Verbindungsnetz (PeerJS) ist nicht erreichbar. Bitte versuche es später erneut.');
+          return networkError(`Das Verbindungsnetz (PeerJS-Signalserver) ist nicht erreichbar. Prüfe Werbeblocker/VPN oder versuche es später erneut. [${type ?? 'unbekannt'}]`);
         }
       }
       if (registered) {
@@ -321,43 +352,50 @@ export function createP2PBackend(): Backend {
 
   async function connectToHost(code: string): Promise<{ ok: true } | { ok: false; res: ServerResponse }> {
     clientCode = code;
+    let phase: 'signal' | 'connect' = 'signal';
     try {
       clientPeer?.destroy();
+      log(`Verbinde mit Signalserver …`);
       const peer = await openPeer();
       clientPeer = peer;
+      phase = 'connect';
+      log(`Signalserver ok, suche Host ${PEER_PREFIX}${code} …`);
       const c = await new Promise<DataConnection>((resolve, reject) => {
         const dc = peer.connect(PEER_PREFIX + code, { reliable: true });
-        const timer = setTimeout(() => reject(Object.assign(new Error('timeout'), { type: 'timeout' })), 15000);
+        const timer = setTimeout(() => reject(Object.assign(new Error('Zeitüberschreitung'), { type: 'connect-timeout' })), 30000);
+        const fail = (e: unknown) => {
+          clearTimeout(timer);
+          reject(e);
+        };
         dc.once('open', () => {
           clearTimeout(timer);
           resolve(dc);
         });
-        dc.once('error', (e) => {
-          clearTimeout(timer);
-          reject(e);
-        });
-        peer.once('error', (e) => {
-          clearTimeout(timer);
-          reject(e);
-        });
+        dc.once('error', fail);
+        peer.once('error', fail);
+        dc.on('iceStateChanged', (s: string) => log(`ICE-Zustand: ${s}`));
       });
+      log('Direktverbindung steht');
       disposedClient = false;
       attachClientConn(c);
       c.send({ t: 'hello', uid } satisfies ToHost);
       return { ok: true };
     } catch (e) {
-      const type = (e as { type?: string }).type;
+      const type = errType(e);
+      log(`Verbindung fehlgeschlagen (${phase}): ${type} – ${errMsg(e)}`);
       if (type === 'peer-unavailable') {
-        return { ok: false, res: { ok: false, error: { code: 'invalid_code', message: 'Diesen Raum gibt es nicht. Prüfe den Code.' } } };
+        return { ok: false, res: { ok: false, error: { code: 'invalid_code', message: 'Diesen Raum gibt es nicht. Prüfe den Code. (Der Host muss die Seite noch geöffnet haben.)' } } };
       }
-      return {
-        ok: false,
-        res: networkError(
-          type === 'timeout'
-            ? 'Der Host ist nicht erreichbar. Läuft die Seite beim Host noch? (Manche Netze blockieren Direktverbindungen.)'
-            : 'Das Verbindungsnetz (PeerJS) ist nicht erreichbar.',
-        ),
-      };
+      const detail = ` [${type}]`;
+      let message: string;
+      if (phase === 'signal') {
+        message = `Das Verbindungsnetz (PeerJS-Signalserver) ist von diesem Gerät aus nicht erreichbar. Mögliche Ursachen: Werbe-/Tracking-Blocker, VPN, Firmen- oder Schul-WLAN, Datenschutz-Modus.${detail}`;
+      } else if (type === 'connect-timeout' || type === 'negotiation-failed' || type === 'webrtc') {
+        message = `Der Host wurde gefunden, aber die Direktverbindung kam nicht zustande. Meist blockiert das Netz WebRTC (z. B. Mobilfunk, Firmen-/Gäste-WLAN) oder der Host-Browser ist im Hintergrund. Versuche beide Geräte im selben WLAN.${detail}`;
+      } else {
+        message = `Die Verbindung zum Host ist fehlgeschlagen.${detail}`;
+      }
+      return { ok: false, res: networkError(message) };
     }
   }
 
@@ -440,6 +478,7 @@ export function createP2PBackend(): Backend {
   // ───────────── Backend-Schnittstelle ─────────────
   return {
     mode: 'p2p',
+    diagnostics: () => [...p2pLog],
 
     async request(req) {
       if (req.type === 'create') {
