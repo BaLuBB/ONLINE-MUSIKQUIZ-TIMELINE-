@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { GameError, Settings } from '@engine/types.ts';
 import { defaultSettings } from '@engine/engine.ts';
 import { normalizeRoomCode } from '@engine/rng.ts';
-import { Field, Button, Dialog } from '../components/ui.tsx';
+import { Field, Button, Dialog, Toggle } from '../components/ui.tsx';
 import { SettingsForm } from '../components/SettingsForm.tsx';
 import { useGame } from '../lib/GameProvider.tsx';
 import { saveName, savedName } from '../lib/format.ts';
@@ -21,6 +21,7 @@ export function CreateDialog() {
   const open = dialog === 'create';
   const [name, setName] = useState(savedName());
   const [settings, setSettings] = useState<Settings>(defaultSettings());
+  const [speakerHere, setSpeakerHere] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<GameError | null>(null);
 
@@ -33,7 +34,7 @@ export function CreateDialog() {
     setLoading(true);
     setErr(null);
     saveName(name.trim());
-    const error = await createRoom(name, settings);
+    const error = await createRoom(name, settings, speakerHere);
     setLoading(false);
     if (error) setErr(error);
     else close();
@@ -47,6 +48,12 @@ export function CreateDialog() {
           <Field label="Dein Name" value={name} onChange={(e) => setName(e.target.value)} maxLength={20} autoComplete="nickname" required autoFocus error={fe.name} />
           <Field label="Raumname (optional)" value={settings.roomName} onChange={(e) => setSettings({ ...settings, roomName: e.target.value })} maxLength={32} placeholder="z. B. Freitagabend" />
         </div>
+        <Toggle
+          label="Party-Modus: Dieses Gerät ist die Box"
+          description="Nur auf diesem Gerät läuft die Musik, alle anderen bleiben still. Du kannst das später in der Lobby ändern."
+          checked={speakerHere}
+          onChange={setSpeakerHere}
+        />
         <SettingsForm
           settings={settings}
           counts={null}
