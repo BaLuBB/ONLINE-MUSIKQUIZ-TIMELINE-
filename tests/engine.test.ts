@@ -118,7 +118,10 @@ describe('Einstellungen', () => {
   it('wendet Schwierigkeits-Presets an', () => {
     const base = defaultSettings();
     const r = applySettingsPatch(base, { difficulty: 'hard' }, 1);
-    expect(r.ok && r.settings.maxReplays).toBe(1);
+    expect(r.ok && r.settings.allowReplay).toBe(false); // Schwer: nur einmal anhören
+    const normal = applySettingsPatch(base, { difficulty: 'normal' }, 1);
+    expect(normal.ok && normal.settings.allowReplay).toBe(true);
+    expect(normal.ok && normal.settings.maxReplays).toBe(3);
   });
 });
 

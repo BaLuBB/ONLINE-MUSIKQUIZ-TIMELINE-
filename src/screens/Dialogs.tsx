@@ -83,7 +83,7 @@ export function CreateDialog() {
 
 // Schwierigkeits-Presets spiegeln die Engine, damit die Vorschau im Dialog stimmt.
 function presetFor(d: Settings['difficulty'], patch: Partial<Settings>): Partial<Settings> {
-  const base = { easy: { allowReplay: true, maxReplays: 0 }, normal: { allowReplay: true, maxReplays: 3 }, hard: { allowReplay: true, maxReplays: 1 } }[d];
+  const base = { easy: { allowReplay: true, maxReplays: 0 }, normal: { allowReplay: true, maxReplays: 3 }, hard: { allowReplay: false, maxReplays: 0 } }[d];
   return { ...base, ...patch };
 }
 

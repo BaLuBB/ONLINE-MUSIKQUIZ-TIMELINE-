@@ -88,7 +88,7 @@ const fail = (code: ErrorCode, message: string): { ok: false; error: GameError }
 const DIFFICULTY_PRESETS: Record<Difficulty, Pick<Settings, 'allowReplay' | 'maxReplays' | 'titleBonus'>> = {
   easy: { allowReplay: true, maxReplays: 0, titleBonus: true },
   normal: { allowReplay: true, maxReplays: 3, titleBonus: true },
-  hard: { allowReplay: true, maxReplays: 1, titleBonus: true },
+  hard: { allowReplay: false, maxReplays: 0, titleBonus: true }, // einmal anhören
 };
 
 export function defaultSettings(): Settings {
@@ -764,6 +764,8 @@ function doReplay(w: Work): Err {
   const { state, secret } = w;
   if (state.phase !== 'playing' || !secret.current) return err('no_card', 'Es gibt gerade keine Karte zum Abspielen.');
   if (!state.settings.allowReplay) return err('replay_disabled', 'Wiederholen ist in diesem Spiel ausgeschaltet.');
+  // Der Tipp ist endgültig: Wer den Titel getippt hat, darf den Song nicht noch einmal von vorn hören.
+  if (secret.current.guess) return err('replay_disabled', 'Nach dem abgegebenen Tipp kann der Song nicht mehr wiederholt werden.');
   const max = state.settings.maxReplays;
   if (max > 0 && state.turn!.replaysUsed >= max) return err('replay_limit', 'Du hast alle Wiederholungen aufgebraucht.');
   state.turn!.replaysUsed += 1;

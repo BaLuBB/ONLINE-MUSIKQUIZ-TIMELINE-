@@ -50,7 +50,7 @@ export function SettingsForm({ settings, counts, onChange, readOnly, playerCount
         <p className="muted small">
           {settings.difficulty === 'easy' && 'Unbegrenzt wiederholen.'}
           {settings.difficulty === 'normal' && 'Bis zu 3 Wiederholungen pro Karte.'}
-          {settings.difficulty === 'hard' && 'Nur eine Wiederholung pro Karte.'}
+          {settings.difficulty === 'hard' && 'Der Song läuft nur einmal – keine Wiederholung (nach dem Aufdecken hörst du ihn noch einmal).'}
         </p>
         <h3 className="mt">Zeitraum</h3>
         <Segmented

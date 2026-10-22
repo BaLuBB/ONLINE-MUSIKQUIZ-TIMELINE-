@@ -344,6 +344,17 @@ describe('Wiederholen', () => {
     expect((await active.act(room.roomId, { type: 'replay' })).ok).toBe(true);
     expectErr(await active.act(room.roomId, { type: 'replay' }), 'replay_limit');
   });
+  it('nach dem abgegebenen Titel-Tipp ist kein Wiederholen mehr möglich', async () => {
+    const h = makeHarness();
+    const room = await setupRoom(h);
+    const { active } = await drawCurrent(room);
+    expect((await active.act(room.roomId, { type: 'replay' })).ok).toBe(true); // vor dem Tipp erlaubt
+    expect((await active.act(room.roomId, { type: 'guess', text: 'irgendein Titel' })).ok).toBe(true);
+    expectErr(await active.act(room.roomId, { type: 'replay' }), 'replay_disabled');
+    // Die Audioquelle selbst (z. B. nach Neuladen der Seite) bleibt abrufbar.
+    const again = await active.act(room.roomId, { type: 'audio' });
+    expect(again.ok && again.audio?.kind).toBe('synth');
+  });
   it('kann komplett ausgeschaltet werden', async () => {
     const h = makeHarness();
     const room = await setupRoom(h, { allowReplay: false });
@@ -598,5 +609,14 @@ describe('Cover-Zuordnung', () => {
     const best = pickBestMatch({ title: 'Wonderwall', artist: 'Oasis' }, results, false);
     expect(best?.artworkUrl100).toBe('studio.jpg');
     expect(pickBestMatch({ title: 'Wonderwall', artist: 'Oasis' }, results, true)).toBeNull(); // ohne Preview kein Treffer
+  });
+});
+
+describe('Schwierigkeit Schwer', () => {
+  it('erlaubt den Song nur einmal anzuhören (keine Wiederholung)', async () => {
+    const h = makeHarness();
+    const room = await setupRoom(h, { difficulty: 'hard' });
+    const { active } = await drawCurrent(room);
+    expectErr(await active.act(room.roomId, { type: 'replay' }), 'replay_disabled');
   });
 });
