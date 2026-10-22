@@ -119,7 +119,7 @@ Recherchiert anhand öffentlich zugänglicher Händler-/Herstellerbeschreibungen
 
 **Digitale Zusätze / Hausregeln (klar getrennt von den Grundregeln):**
 * **Titel-Bonus** (an/aus): +1 Punkt für den richtig erratenen Titel, einmal pro Karte, einen Versuch. Der Bonus zählt **nicht** als Karte und nicht für den Sieg. Er wird auch bei falscher Platzierung vergeben. Ob der Tipp stimmt, sieht man erst beim Aufdecken.
-* **Wiederholen** (an/aus, begrenzbar). **Schwierigkeit** setzt Presets (Einfach: unbegrenzt, Normal: 3, Schwer: 1 Wiederholung). **Zeitraum**-Filter.
+* **Wiederholen** (an/aus, begrenzbar). **Schwierigkeit** setzt Presets (Einfach: unbegrenzt, Normal: 3, Schwer: 1 Wiederholung). **Zeitraum**-Filter. Nach dem abgegebenen Titel-Tipp ist kein Wiederholen mehr möglich (der Tipp ist endgültig); der laufende Ausschnitt darf nur noch pausiert und fortgesetzt werden.
 * **Zählweise des Ziels:** Standard ist „X korrekt platzierte Karten“ *zusätzlich* zur Startkarte (so lautete die Vorgabe). Die Option „Startkarte zählt zum Ziel“ stellt die offizielle Zählung (10 Karten im Zeitstrahl inkl. Startkarte) ein.
 
 **Weitere Festlegungen**

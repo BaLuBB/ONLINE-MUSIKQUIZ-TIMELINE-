@@ -764,6 +764,8 @@ function doReplay(w: Work): Err {
   const { state, secret } = w;
   if (state.phase !== 'playing' || !secret.current) return err('no_card', 'Es gibt gerade keine Karte zum Abspielen.');
   if (!state.settings.allowReplay) return err('replay_disabled', 'Wiederholen ist in diesem Spiel ausgeschaltet.');
+  // Der Tipp ist endgültig: Wer den Titel getippt hat, darf den Song nicht noch einmal von vorn hören.
+  if (secret.current.guess) return err('replay_disabled', 'Nach dem abgegebenen Tipp kann der Song nicht mehr wiederholt werden.');
   const max = state.settings.maxReplays;
   if (max > 0 && state.turn!.replaysUsed >= max) return err('replay_limit', 'Du hast alle Wiederholungen aufgebraucht.');
   state.turn!.replaysUsed += 1;

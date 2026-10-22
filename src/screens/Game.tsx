@@ -52,6 +52,7 @@ export function Game() {
   const canPlace = isMyTurn && drawn;
   const viewingActive = viewed.id === turnId;
   const speaker = state.players.find((p) => p.id === state.settings.speakerId) ?? null;
+  const guessMade = Boolean(state.turn?.guessMade);
   const replaysLeft = state.settings.maxReplays > 0 ? Math.max(0, state.settings.maxReplays - (state.turn?.replaysUsed ?? 0)) : null;
 
   const place = async () => {
@@ -144,13 +145,13 @@ export function Game() {
             ) : isMyTurn && drawn ? (
               <>
                 {audioHere ? (
-                  <AudioPanel audio={audio} canReplay={state.settings.allowReplay} replaysLeft={replaysLeft} onReplay={() => void act({ type: 'replay' })} />
+                  <AudioPanel audio={audio} canReplay={state.settings.allowReplay} locked={guessMade} replaysLeft={replaysLeft} onReplay={() => void act({ type: 'replay' })} />
                 ) : (
                   <div className="stack-md center">
                     <p className="speaker-note">
                       <Speaker size={16} aria-hidden /> Die Musik läuft über das Gerät von {speaker?.name ?? 'einem Mitspieler'}.
                     </p>
-                    {state.settings.allowReplay && (
+                    {state.settings.allowReplay && !guessMade && (
                       <Button size="sm" disabled={replaysLeft === 0 || busy} onClick={() => void act({ type: 'replay' })}>
                         Nochmal von vorn{replaysLeft !== null ? ` (${replaysLeft})` : ''}
                       </Button>
@@ -162,7 +163,7 @@ export function Game() {
               </>
             ) : isMyTurn || !active ? null : (
               <>
-                {audioHere && drawn && <AudioPanel audio={audio} canReplay={false} replaysLeft={null} onReplay={() => {}} />}
+                {audioHere && drawn && <AudioPanel audio={audio} canReplay={false} locked={guessMade} replaysLeft={null} onReplay={() => {}} />}
                 {speaker && !audioHere && (
                   <p className="speaker-note">
                     <Speaker size={16} aria-hidden /> Die Musik läuft über das Gerät von {speaker.name}.
