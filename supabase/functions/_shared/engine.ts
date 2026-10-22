@@ -88,7 +88,7 @@ const fail = (code: ErrorCode, message: string): { ok: false; error: GameError }
 const DIFFICULTY_PRESETS: Record<Difficulty, Pick<Settings, 'allowReplay' | 'maxReplays' | 'titleBonus'>> = {
   easy: { allowReplay: true, maxReplays: 0, titleBonus: true },
   normal: { allowReplay: true, maxReplays: 3, titleBonus: true },
-  hard: { allowReplay: true, maxReplays: 1, titleBonus: true },
+  hard: { allowReplay: false, maxReplays: 0, titleBonus: true }, // einmal anhören
 };
 
 export function defaultSettings(): Settings {

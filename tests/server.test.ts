@@ -611,3 +611,12 @@ describe('Cover-Zuordnung', () => {
     expect(pickBestMatch({ title: 'Wonderwall', artist: 'Oasis' }, results, true)).toBeNull(); // ohne Preview kein Treffer
   });
 });
+
+describe('Schwierigkeit Schwer', () => {
+  it('erlaubt den Song nur einmal anzuhören (keine Wiederholung)', async () => {
+    const h = makeHarness();
+    const room = await setupRoom(h, { difficulty: 'hard' });
+    const { active } = await drawCurrent(room);
+    expectErr(await active.act(room.roomId, { type: 'replay' }), 'replay_disabled');
+  });
+});
