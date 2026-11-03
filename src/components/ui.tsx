@@ -105,9 +105,24 @@ export function Segmented<T extends string>({ label, value, options, onChange, d
   );
 }
 
+// Solange ein Dialog offen ist, scrollt die Seite dahinter nicht (zählt mit, falls einer den anderen ablöst).
+let openDialogs = 0;
+function useScrollLock(open: boolean): void {
+  useEffect(() => {
+    if (!open) return;
+    openDialogs++;
+    document.documentElement.classList.add('modal-open');
+    return () => {
+      openDialogs = Math.max(0, openDialogs - 1);
+      if (openDialogs === 0) document.documentElement.classList.remove('modal-open');
+    };
+  }, [open]);
+}
+
 export function Dialog({ open, onClose, title, children, wide, labelledBy }: { open: boolean; onClose(): void; title: string; children: ReactNode; wide?: boolean; labelledBy?: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  useScrollLock(open);
   useEffect(() => {
     const d = ref.current;
     if (!d) return;

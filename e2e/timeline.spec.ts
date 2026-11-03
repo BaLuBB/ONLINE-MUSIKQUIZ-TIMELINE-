@@ -223,4 +223,44 @@ test.describe('Responsive', () => {
     await noOverflow(host);
     await noOverflow(guest);
   });
+
+  test('gescrollt wird nur, wenn der Inhalt nicht auf den Bildschirm passt', async ({ page }) => {
+    const dialogScrolls = () =>
+      page.evaluate(() => {
+        const b = document.querySelector('dialog[open] .dialog-body')!;
+        return b.scrollHeight > b.clientHeight + 1;
+      });
+    // Großer Bildschirm: der Erstellen-Dialog passt komplett hinein, es gibt keinen Rollbalken.
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Spiel erstellen' }).click();
+    await page.waitForSelector('dialog[open] .dialog-body');
+    expect(await dialogScrolls()).toBe(false);
+    // Hinter dem offenen Dialog scrollt die Seite nicht mit.
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe('hidden');
+    // Kleiner Bildschirm: der Inhalt scrollt im Dialog (statt abgeschnitten zu werden).
+    await page.setViewportSize({ width: 1366, height: 700 });
+    expect(await dialogScrolls()).toBe(true);
+    await page.getByRole('button', { name: 'Abbrechen' }).click();
+    await expect(page.locator('dialog[open]')).toHaveCount(0);
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).not.toBe('hidden');
+  });
+
+  test('Spielansicht passt auf einen Laptop-Bildschirm ohne Seitenscrollen', async ({ context }) => {
+    const host = await context.newPage();
+    await host.setViewportSize({ width: 1366, height: 768 });
+    const code = await createRoom(host, 'Anna');
+    const guest = await context.newPage();
+    await join(guest, code, 'Ben');
+    await host.getByRole('button', { name: 'Spiel starten' }).click();
+    await expect(host.locator('.stage')).toBeVisible();
+    await host.waitForTimeout(1500);
+    const page = await Promise.all([host, guest].map(async (p) => ((await p.getByRole('button', { name: 'Karte ziehen' }).count()) ? p : null))).then((r) => r.find(Boolean) ?? host);
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.getByRole('button', { name: 'Karte ziehen' }).click();
+    await page.waitForSelector('.audio-panel');
+    await page.waitForTimeout(600);
+    const over = await page.evaluate(() => document.scrollingElement!.scrollHeight - document.scrollingElement!.clientHeight);
+    expect(over).toBeLessThanOrEqual(1);
+  });
 });

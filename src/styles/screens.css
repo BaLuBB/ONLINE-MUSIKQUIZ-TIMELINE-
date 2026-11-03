@@ -42,10 +42,12 @@
 @media (max-width: 760px) { .bg-card { opacity: 0.28; } .bg-card.c3 { display: none; } .home-line span:nth-child(even) { display: none; } }
 
 /* ───────── Lobby ───────── */
-.lobby { width: min(1040px, 100%); margin: 0 auto; padding: var(--space-5) var(--gutter) var(--space-7); display: flex; flex-direction: column; gap: var(--space-5); }
+.lobby { width: min(1320px, 100%); margin: 0 auto; padding: var(--space-5) var(--gutter) var(--space-7); display: flex; flex-direction: column; gap: var(--space-5); }
 .lobby-head h1 { font-size: var(--text-3xl); margin-top: 4px; }
 .lobby-grid { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: var(--space-5); align-items: start; }
 @media (max-width: 860px) { .lobby-grid { grid-template-columns: minmax(0, 1fr); } }
+/* Auf breiten Bildschirmen bekommt die Einstellungsspalte mehr Platz (zweispaltig, siehe Container-Query unten). */
+@media (min-width: 1240px) { .lobby-grid { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); } }
 .lobby-grid > * { min-width: 0; }
 .code-panel { align-items: flex-start; }
 .code-display { font-family: var(--font-mono); font-size: clamp(2.4rem, 9vw, 3.4rem); font-weight: 600; letter-spacing: 0.16em; line-height: 1; padding: var(--space-3) 0; user-select: all; }
@@ -61,6 +63,15 @@
 .dot.off { background: transparent; color: var(--ink-3); width: auto; height: auto; }
 .start-panel .waiting-note { text-align: center; color: var(--ink-2); padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-md); }
 .settings-form { display: flex; flex-direction: column; gap: var(--space-5); }
+/* Die Einstellungen richten sich nach der Breite des Behälters (Dialog oder Lobby-Spalte), nicht nur nach dem Bildschirm:
+   Ist genug Platz, stehen Regeln und Genres nebeneinander und es muss weniger gescrollt werden. */
+.settings-panel, .dialog-body { container-type: inline-size; }
+@container (min-width: 760px) {
+  .settings-form { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto auto auto 1fr; column-gap: var(--space-6); row-gap: var(--space-4); align-items: start; }
+  .settings-form > .set-block { grid-column: 1; padding-bottom: var(--space-4); }
+  .settings-form > .set-genres { grid-column: 2; grid-row: 1 / span 4; border-bottom: 0; padding-bottom: 0; }
+  .settings-form > .set-block:nth-last-child(2) { border-bottom: 0; padding-bottom: 0; }
+}
 .set-block { display: flex; flex-direction: column; gap: var(--space-2); padding-bottom: var(--space-5); border-bottom: 1px solid var(--line); }
 .set-block:last-child { border-bottom: 0; padding-bottom: 0; }
 .set-block h3 { font-size: var(--text-sm); color: var(--ink-3); font-weight: 650; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: var(--space-1); }
@@ -126,4 +137,41 @@
   .action-desktop { display: none; }
   .action-mobile { display: block; position: sticky; bottom: 0; z-index: 8; margin-top: var(--space-2); padding: var(--space-3) var(--gutter) calc(var(--space-3) + var(--safe-bottom)); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: saturate(180%) blur(16px); -webkit-backdrop-filter: saturate(180%) blur(16px); border-top: 1px solid var(--line); }
   .action-mobile .action-bar .btn { flex: 1 1 140px; }
+}
+
+/* ───────── Anpassung an die Bildschirmhöhe ─────────
+   Auf niedrigen Bildschirmen (Laptop, Querformat) werden Karten und Abstände kleiner, damit möglichst nichts
+   gescrollt werden muss. Passt der Inhalt trotzdem nicht, scrollt die Seite wie gewohnt. */
+@media (max-height: 1120px) and (min-width: 521px) {
+  .song-card { --cw: 112px; --ch: 170px; }
+  .flip, .deck-stack { width: 112px; height: 170px; }
+  .stage { padding-top: var(--space-2); gap: var(--space-2); }
+  .stage h1 { font-size: var(--text-2xl); }
+  .stage-card { min-height: 160px; padding: 0; }
+  .stage-controls { gap: var(--space-3); min-height: 0; }
+  .result { padding: var(--space-3) var(--space-5); gap: var(--space-2); }
+  .slot { min-height: 170px; }
+  .timeline-scroll { padding-top: var(--space-3); padding-bottom: var(--space-4); }
+  .game-main { gap: var(--space-2); padding-bottom: var(--space-3); }
+  .topbar { padding-top: calc(var(--space-2) + var(--safe-top)); padding-bottom: var(--space-2); }
+  .player-strip { padding-bottom: var(--space-2); }
+}
+@media (max-height: 880px) and (min-width: 521px) {
+  .lobby { padding-top: var(--space-3); gap: var(--space-4); }
+}
+/* Querformat/Laptop: Karte links, Steuerung (Musik, Platzieren, Ergebnis) rechts – spart die Höhe der Karte. */
+@media (min-width: 900px) and (max-height: 900px) {
+  .stage { display: grid; grid-template-columns: auto minmax(0, 560px); justify-content: center; align-items: center; column-gap: var(--space-6); row-gap: var(--space-2); }
+  .stage > .eyebrow, .stage > h1 { grid-column: 1 / -1; justify-self: center; }
+  .stage > .stage-card { grid-column: 1; }
+  .stage > .stage-controls { grid-column: 2; width: 100%; }
+}
+/* Dialoge: auf niedrigen Bildschirmen etwas kompakter, damit weniger gescrollt werden muss. */
+@media (max-height: 1120px) {
+  .dialog-body { padding: var(--space-4) var(--space-5); gap: var(--space-3); }
+  .dialog-head h2 { font-size: var(--text-xl); }
+  .genre-chip { min-height: 32px; }
+  .set-block { gap: var(--space-1); }
+  .genre-picker { gap: var(--space-3); }
+  .dialog { max-height: calc(100dvh - 2 * var(--space-4)); }
 }

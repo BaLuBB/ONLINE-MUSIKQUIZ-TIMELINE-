@@ -155,6 +155,14 @@ Clients erhalten Audio nur als abspielbare Quelle für den **aktiven Spieler**; 
 * Erweitern: Zeile ergänzen, `npm run check:songs`, ggf. `npm run gen:seed` für die Tabelle `songs` (`SONGS_SOURCE=db`).
 * Die Bibliothek wird **nicht** ins Frontend ausgeliefert.
 
+## Bildschirmgrößen und Scrollen
+
+Die Oberfläche passt sich an die Größe an und scrollt nur, wenn der Inhalt nicht hineinpasst:
+
+* **Einstellungen** (Erstellen-Dialog, Lobby) richten sich per Container-Query nach der Breite des Behälters: Ist genug Platz, stehen Regeln und Genres nebeneinander (auf 1920×1080 passt der Erstellen-Dialog ohne Rollbalken).
+* **Spielansicht**: Auf niedrigen Bildschirmen (≤ 1120 px Höhe) werden Karten und Abstände kleiner; im Querformat/Laptop (≥ 900 px breit, ≤ 900 px hoch) stehen Karte und Steuerung nebeneinander – so passt die Ansicht auf 1366×768 ohne Seitenscrollen. Auf Handys scrollt die Seite wie gewohnt.
+* Hinter einem offenen Dialog scrollt die Seite nicht mit; ein Dialog scrollt nur in sich, wenn sein Inhalt höher ist als der Bildschirm.
+
 ## Datenschutz und Grenzen
 
 * Gespeichert werden: anonyme Auth-ID (zufällig, kein Konto), Anzeigename (≤ 20 Zeichen, vom Nutzer gewählt), Spielstand/Ereignisse. Keine E-Mail-Adressen, keine Klarnamen, keine Tracker. Supabase selbst kann technische Logs (z. B. IP-Adressen) führen – siehe deren Datenschutzdokumentation und die Auftragsverarbeitung.
