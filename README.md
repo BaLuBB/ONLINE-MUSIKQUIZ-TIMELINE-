@@ -159,7 +159,7 @@ Clients erhalten Audio nur als abspielbare Quelle für den **aktiven Spieler**; 
 
 Die Oberfläche passt sich an die Größe an und scrollt nur, wenn der Inhalt nicht hineinpasst:
 
-* **Einstellungen** (Erstellen-Dialog, Lobby) richten sich per Container-Query nach der Breite des Behälters: Ist genug Platz, stehen Regeln und Genres nebeneinander (auf 1920×1080 passt der Erstellen-Dialog ohne Rollbalken).
+* **Einstellungen** (Erstellen-Dialog, Lobby) richten sich per Container-Query nach der Breite des Behälters: Ist genug Platz, stehen Regeln und Genres nebeneinander (auf großen Bildschirmen ab etwa 1920×1080 passt der Erstellen-Dialog ohne Rollbalken, je nach Schriftart).
 * **Spielansicht**: Auf niedrigen Bildschirmen (≤ 1120 px Höhe) werden Karten und Abstände kleiner; im Querformat/Laptop (≥ 900 px breit, ≤ 900 px hoch) stehen Karte und Steuerung nebeneinander – so passt die Ansicht auf 1366×768 ohne Seitenscrollen. Auf Handys scrollt die Seite wie gewohnt.
 * Hinter einem offenen Dialog scrollt die Seite nicht mit; ein Dialog scrollt nur in sich, wenn sein Inhalt höher ist als der Bildschirm.
 

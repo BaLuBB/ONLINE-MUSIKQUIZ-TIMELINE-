@@ -231,7 +231,8 @@ test.describe('Responsive', () => {
         return b.scrollHeight > b.clientHeight + 1;
       });
     // Großer Bildschirm: der Erstellen-Dialog passt komplett hinein, es gibt keinen Rollbalken.
-    await page.setViewportSize({ width: 1920, height: 1080 });
+    // (Mit Reserve gewählt: Schriftart und Zeilenumbrüche unterscheiden sich je nach System um einige Pixel.)
+    await page.setViewportSize({ width: 1920, height: 1200 });
     await page.goto('/');
     await page.getByRole('button', { name: 'Spiel erstellen' }).click();
     await page.waitForSelector('dialog[open] .dialog-body');

@@ -173,5 +173,5 @@
   .genre-chip { min-height: 32px; }
   .set-block { gap: var(--space-1); }
   .genre-picker { gap: var(--space-3); }
-  .dialog { max-height: calc(100dvh - 2 * var(--space-4)); }
+  .dialog { max-height: calc(100dvh - 2 * var(--space-2)); }
 }
