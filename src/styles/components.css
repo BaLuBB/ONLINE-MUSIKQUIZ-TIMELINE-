@@ -113,7 +113,9 @@
   box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
-.dialog-wide { width: min(720px, calc(100vw - 2 * var(--gutter))); }
+.dialog-wide { width: min(1200px, calc(100vw - 2 * var(--gutter))); }
+/* Hinter einem Dialog scrollt die Seite nicht mit (sonst entstehen Rollbalken, obwohl nichts zu scrollen ist). */
+html.modal-open { overflow: hidden; }
 .dialog[open] { animation: dialog-in var(--dur-2) var(--ease); display: flex; flex-direction: column; }
 .dialog::backdrop { background: var(--overlay); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 .dialog[open]::backdrop { animation: fade-in var(--dur-2) var(--ease); }
